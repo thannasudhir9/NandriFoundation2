@@ -11,6 +11,7 @@ Nandri Connect is a progressive web application designed to bridge the gap betwe
 - **Multilingual Support**: Fully localized in English and German (DE).
 - **Authentication**: Fully functional standalone user authentication flow with local persistence. Default Admin credentials available.
 - **CRM Dashboard**: Excel export/import support for managing large volumes of student records, locations, and sponsor assignments.
+- **Offline-First Local DB & Sync**: Implements a robust `SyncService` that utilizes IndexedDB (via Dexie) as a localized database (since physical `.sqlite` files cannot be read-write in standard static deployments). It automatically syncs two-way with the Cloud DB, ensuring you can run offline while maintaining state.
 
 ## Setup & Installation
 

@@ -14,30 +14,29 @@ interface AuthContextType {
   login: (email: string) => void;
   logout: () => void;
   register: (email: string, name: string) => void;
+  changeUserRole: (userId: string, newRole: Role) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const SUPERADMIN_EMAILS = ['sthanna@salesforce.com'];
 const ADMIN_EMAILS = [
-  'sthanna@salesforce.com',
   'thannasudhir9@gmail.com'
 ];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // Auto-login logic could go here if we wanted persistent session via localStorage
   useEffect(() => {
     const savedUser = localStorage.getItem('nandri_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     } else {
-      // Set default login for preview purposes as requested
       const defaultAdmin: User = {
         id: 'admin1',
         email: 'sthanna@salesforce.com',
         name: 'Sudhir Thanna',
-        role: 'employee',
+        role: 'superadmin',
         photoUrl: 'https://i.pravatar.cc/150?u=sthanna'
       };
       setUser(defaultAdmin);
@@ -46,12 +45,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (email: string) => {
+    const isSuperAdmin = SUPERADMIN_EMAILS.includes(email.toLowerCase());
     const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
     const newUser: User = {
       id: Math.random().toString(36).substr(2, 9),
       email,
       name: email.split('@')[0],
-      role: isAdmin ? 'employee' : 'sponsor',
+      role: isSuperAdmin ? 'superadmin' : isAdmin ? 'employee' : 'sponsor',
       photoUrl: `https://i.pravatar.cc/150?u=${email}`
     };
     setUser(newUser);
@@ -59,12 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = (email: string, name: string) => {
+    const isSuperAdmin = SUPERADMIN_EMAILS.includes(email.toLowerCase());
     const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
     const newUser: User = {
       id: Math.random().toString(36).substr(2, 9),
       email,
       name,
-      role: isAdmin ? 'employee' : 'sponsor',
+      role: isSuperAdmin ? 'superadmin' : isAdmin ? 'employee' : 'sponsor',
       photoUrl: `https://i.pravatar.cc/150?u=${email}`
     };
     setUser(newUser);
@@ -76,8 +77,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('nandri_user');
   };
 
+  // Allow dynamic role change
+  const changeUserRole = (userId: string, newRole: Role) => {
+    if (user && user.id === userId) {
+      const updatedUser = { ...user, role: newRole };
+      setUser(updatedUser);
+      localStorage.setItem('nandri_user', JSON.stringify(updatedUser));
+    }
+    // Also we need to persist to a list of users, but we are currently mock local storage for users.
+    // For now we just update the current user if it matches.
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, login, logout, register, changeUserRole }}>
       {children}
     </AuthContext.Provider>
   );
