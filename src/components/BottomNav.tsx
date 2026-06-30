@@ -1,5 +1,6 @@
-import { Home, Users, PlusCircle, Settings, Database, Sparkles } from 'lucide-react';
+import { Home, Users, PlusCircle, Settings, Database, Sparkles, LayoutDashboard } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
+import Link from 'next/link';
 
 interface BottomNavProps {
   currentTab: string;
@@ -36,6 +37,26 @@ export function BottomNav({ currentTab, setCurrentTab, role }: BottomNavProps) {
           <span className="text-[10px] font-medium hidden sm:block">Features</span>
         </button>
         
+        {(role === 'employee' || role === 'superadmin') && (
+          <button
+            onClick={() => setCurrentTab('dashboard')}
+            className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'dashboard' ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            <LayoutDashboard className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-medium hidden sm:block">{t('dashboard')}</span>
+          </button>
+        )}
+
+        {(role === 'employee' || role === 'superadmin') && (
+          <Link
+            href="/reports"
+            className="flex flex-col items-center p-2 flex-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            <span className="w-6 h-6 mb-1 text-center font-bold">R</span>
+            <span className="text-[10px] font-medium hidden sm:block">Reports</span>
+          </Link>
+        )}
+
         {(role === 'employee' || role === 'superadmin') && (
           <button 
             onClick={() => setCurrentTab('add')}

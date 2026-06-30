@@ -13,6 +13,28 @@ export function AddUpdate({ students, onAddUpdate, onSuccess }: AddUpdateProps) 
   const [type, setType] = useState<'general' | 'student'>('general');
   const [studentId, setStudentId] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
+  const [shareFacebook, setShareFacebook] = useState(false);
+  const [shareInstagram, setShareInstagram] = useState(false);
+  const [shareLinkedIn, setShareLinkedIn] = useState(false);
+
+  const openShare = (platform: 'facebook' | 'instagram' | 'linkedin', message: string) => {
+    const encodedMessage = encodeURIComponent(message);
+    const pageUrl = encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : 'https://nandri.example');
+    const photo = encodeURIComponent(photoUrl.trim() || (typeof window !== 'undefined' ? `${window.location.origin}/logo.png` : ''));
+    let url = '';
+
+    if (platform === 'facebook') {
+      url = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}&quote=${encodedMessage}`;
+    } else if (platform === 'linkedin') {
+      url = `https://www.linkedin.com/sharing/share-offsite/?url=${pageUrl}`;
+    } else {
+      url = `https://www.instagram.com/?text=${encodedMessage}&url=${photo}`;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,9 +47,33 @@ export function AddUpdate({ students, onAddUpdate, onSuccess }: AddUpdateProps) 
       studentId: type === 'student' ? studentId : undefined,
       photoUrl: photoUrl.trim() || undefined,
     });
+
+    const queued = JSON.parse(localStorage.getItem('nandri_social_posts') || '[]') as Array<{
+      platform: 'facebook' | 'instagram' | 'linkedin';
+      message: string;
+      photoUrl?: string;
+      createdAt: string;
+    }>;
+    const createdAt = new Date().toISOString();
+    if (shareFacebook) {
+      queued.unshift({ platform: 'facebook', message: content, photoUrl: photoUrl.trim() || undefined, createdAt });
+      openShare('facebook', content);
+    }
+    if (shareInstagram) {
+      queued.unshift({ platform: 'instagram', message: content, photoUrl: photoUrl.trim() || undefined, createdAt });
+      openShare('instagram', content);
+    }
+    if (shareLinkedIn) {
+      queued.unshift({ platform: 'linkedin', message: content, photoUrl: photoUrl.trim() || undefined, createdAt });
+      openShare('linkedin', content);
+    }
+    localStorage.setItem('nandri_social_posts', JSON.stringify(queued.slice(0, 200)));
     
     setContent('');
     setPhotoUrl('');
+    setShareFacebook(false);
+    setShareInstagram(false);
+    setShareLinkedIn(false);
     onSuccess();
   };
 
@@ -109,6 +155,24 @@ export function AddUpdate({ students, onAddUpdate, onSuccess }: AddUpdateProps) 
         </div>
 
         <div className="pt-2">
+          <div className="mb-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Also post to social</p>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" checked={shareFacebook} onChange={(e) => setShareFacebook(e.target.checked)} className="mr-2" />
+                Facebook
+              </label>
+              <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" checked={shareInstagram} onChange={(e) => setShareInstagram(e.target.checked)} className="mr-2" />
+                Instagram
+              </label>
+              <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                <input type="checkbox" checked={shareLinkedIn} onChange={(e) => setShareLinkedIn(e.target.checked)} className="mr-2" />
+                LinkedIn
+              </label>
+            </div>
+          </div>
+
           <button
             type="submit"
             className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-900 transition-colors"

@@ -12,6 +12,7 @@ import { StudentsList } from './components/StudentsList';
 import { AddUpdate } from './components/AddUpdate';
 import { Profile } from './components/Profile';
 import { CrmDashboard } from './components/CrmDashboard';
+import { Dashboard } from './components/Dashboard';
 import { AuthUI } from './components/AuthUI';
 import { Monitor, Smartphone, Globe, ArrowUp, ArrowDown, MessageCircle, Home, Laptop, Moon, Sun } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
@@ -20,10 +21,21 @@ import { SyncService, localDb } from './db/SyncService';
 import { useTheme } from './ThemeContext';
 
 import { Features } from './components/Features';
+import { LiveChatOps, ParsedCommand } from './components/LiveChatOps';
+import { VoiceAssistant } from './components/VoiceAssistant';
+import { Role } from './types';
 
 export default function App() {
+  return <AppShell />;
+}
+
+interface AppShellProps {
+  initialTab?: string;
+}
+
+export function AppShell({ initialTab = 'feed' }: AppShellProps) {
   const [viewMode, setViewMode] = useState<'desktop' | 'laptop' | 'mobile'>('desktop');
-  const [currentTab, setCurrentTab] = useState('feed');
+  const [currentTab, setCurrentTab] = useState(initialTab);
   const [updates, setUpdates] = useState<Update[]>(INITIAL_UPDATES);
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
   
@@ -31,8 +43,29 @@ export default function App() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [waNumber, setWaNumber] = useState('919000668360');
+  const [donateUrl, setDonateUrl] = useState('https://www.paypal.com/donate');
 
   const role = user?.role || 'sponsor';
+  const isStaff = role === 'employee' || role === 'superadmin';
+
+  useEffect(() => {
+    setCurrentTab(initialTab);
+  }, [initialTab]);
+
+  useEffect(() => {
+    const staffOnlyTabs = new Set(['dashboard', 'add', 'crm']);
+    if (!isStaff && staffOnlyTabs.has(currentTab)) {
+      setCurrentTab('feed');
+    }
+  }, [currentTab, isStaff]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setWaNumber(localStorage.getItem('nandri_wa_number') || '919000668360');
+      setDonateUrl(localStorage.getItem('nandri_donate_url') || 'https://www.paypal.com/donate');
+    }
+  }, []);
 
   useEffect(() => {
     // Initial sync on mount
@@ -81,6 +114,105 @@ export default function App() {
     SyncService.syncBothWays();
   };
 
+  const handleManualSync = async () => {
+    const { localStudents, localUpdates } = await SyncService.syncBothWays();
+    setStudents(localStudents);
+    setUpdates(localUpdates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+  };
+
+  const addUserRecord = async (input: { name: string; email: string; role: Role }): Promise<void> => {
+    const existing = JSON.parse(localStorage.getItem('nandri_users') || '[]') as Array<{ id: string; email: string; name: string; role: Role }>;
+    const nextUser = {
+      id: Math.random().toString(36).slice(2, 9),
+      email: input.email.toLowerCase(),
+      name: input.name,
+      role: input.role,
+    };
+    localStorage.setItem('nandri_users', JSON.stringify([nextUser, ...existing]));
+  };
+
+  const executeChatCommand = async (command: ParsedCommand): Promise<string> => {
+    if (!user) {
+      throw new Error('Login required');
+    }
+
+    if (command.type === 'add_student') {
+      const payload = command.payload;
+      await handleAddStudent({
+        name: payload.name,
+        age: Number(payload.age || 10),
+        school: payload.school || 'Primary Village School',
+        village: payload.village || 'Irular Village A',
+        grade: payload.grade || '5th Grade',
+        photoUrl: payload.photoUrl || `https://i.pravatar.cc/150?u=${payload.name}`,
+        sponsorName: payload.sponsorName || '',
+        sponsorEmail: payload.sponsorEmail || '',
+        donationAmount: Number(payload.donationAmount || 0),
+        bio: payload.bio || `${payload.name} added via live chat command.`,
+      });
+      return 'student added';
+    }
+
+    if (command.type === 'add_user') {
+      const payload = command.payload;
+      const roleInput = (payload.role || 'sponsor').toLowerCase();
+      const allowedRole: Role = roleInput === 'superadmin' || roleInput === 'employee' ? (roleInput as Role) : 'sponsor';
+      await addUserRecord({ name: payload.name, email: payload.email, role: allowedRole });
+      return 'user added';
+    }
+
+    if (command.type === 'email_information') {
+      const payload = command.payload;
+      const existing = JSON.parse(localStorage.getItem('nandri_email_outbox') || '[]') as Array<{ to: string; subject: string; body: string; createdAt: string }>;
+      const emailItem = {
+        to: payload.to,
+        subject: payload.subject,
+        body: payload.body,
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem('nandri_email_outbox', JSON.stringify([emailItem, ...existing]));
+      return 'email queued';
+    }
+
+    if (command.type === 'post_content') {
+      const payload = command.payload;
+      await handleAddUpdate({
+        authorName: user.name,
+        content: payload.message,
+        type: payload.studentId ? 'student' : 'general',
+        studentId: payload.studentId,
+        photoUrl: payload.photoUrl,
+      });
+      setCurrentTab('feed');
+      return 'content posted';
+    }
+
+    if (command.type === 'social_post') {
+      const platform = (command.payload.platform || '').toLowerCase();
+      const message = command.payload.message || '';
+      if (!['facebook', 'instagram', 'linkedin'].includes(platform) || !message.trim()) {
+        throw new Error('Invalid social post payload');
+      }
+
+      const queued = JSON.parse(localStorage.getItem('nandri_social_posts') || '[]') as Array<{
+        platform: 'facebook' | 'instagram' | 'linkedin';
+        message: string;
+        photoUrl?: string;
+        createdAt: string;
+      }>;
+      queued.unshift({
+        platform: platform as 'facebook' | 'instagram' | 'linkedin',
+        message: message.trim(),
+        photoUrl: command.payload.photoUrl || undefined,
+        createdAt: new Date().toISOString(),
+      });
+      localStorage.setItem('nandri_social_posts', JSON.stringify(queued.slice(0, 200)));
+      return `queued ${platform} post`;
+    }
+
+    throw new Error('Unsupported command');
+  };
+
   const scrollToTop = () => {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -99,8 +231,9 @@ export default function App() {
     switch(currentTab) {
       case 'feed': return <Feed updates={updates} students={students} />;
       case 'students': return <StudentsList students={students} role={role} />;
+      case 'dashboard': return (role === 'employee' || role === 'superadmin') ? <Dashboard students={students} /> : null;
       case 'add': return (role === 'employee' || role === 'superadmin') ? <AddUpdate students={students} onAddUpdate={handleAddUpdate} onSuccess={() => setCurrentTab('feed')} /> : null;
-      case 'crm': return (role === 'employee' || role === 'superadmin') ? <CrmDashboard students={students} onAddStudent={handleAddStudent} onUpdateStudent={handleUpdateStudent} onDeleteStudent={handleDeleteStudent} /> : null;
+      case 'crm': return (role === 'employee' || role === 'superadmin') ? <CrmDashboard students={students} onAddStudent={handleAddStudent} onUpdateStudent={handleUpdateStudent} onDeleteStudent={handleDeleteStudent} onSyncNow={handleManualSync} /> : null;
       case 'profile': return <Profile />;
       case 'features': return <Features />;
       default: return null;
@@ -117,7 +250,7 @@ export default function App() {
         </h1>
         <div className="flex items-center gap-4">
           <a 
-            href="https://nandrikinderhilfe.de/jetzt-spenden/" 
+            href={donateUrl}
             target="_blank" 
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2 bg-[#0070ba] text-white rounded-lg text-sm font-medium hover:bg-[#003087] transition-colors shadow-sm"
@@ -170,7 +303,7 @@ export default function App() {
         {/* Render area */}
         <div className={`${
           viewMode === 'desktop' ? 'w-full h-full' : 
-          viewMode === 'laptop' ? 'w-[1024px] h-[768px] my-8 rounded-[1rem] border-[8px] border-gray-800 shrink-0 shadow-2xl relative overflow-hidden' : 
+          viewMode === 'laptop' ? 'w-full h-full' : 
           'w-[375px] h-[812px] my-8 rounded-[3rem] border-[12px] border-gray-900 shrink-0 shadow-2xl relative overflow-hidden'
         } bg-gray-50 dark:bg-gray-900 flex flex-col transition-all duration-500 ease-in-out`}>
           
@@ -253,7 +386,7 @@ export default function App() {
               <ArrowDown className="w-5 h-5" />
             </button>
             <a 
-              href={`https://wa.me/${localStorage.getItem('nandri_wa_number') || '919000668360'}`} 
+              href={`https://wa.me/${waNumber}`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-green-600 transition-colors mt-2"
@@ -261,6 +394,15 @@ export default function App() {
             >
               <MessageCircle className="w-6 h-6" />
             </a>
+            {user && isStaff && <LiveChatOps onExecuteCommand={executeChatCommand} />}
+            {user && isStaff && (
+              <VoiceAssistant
+                students={students}
+                onAddStudent={handleAddStudent}
+                onAddUser={addUserRecord}
+                onSetLanguage={setLanguage}
+              />
+            )}
           </div>
           
           {user && <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} role={role} />}

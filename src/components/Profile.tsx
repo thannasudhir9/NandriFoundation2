@@ -9,12 +9,26 @@ export function Profile() {
   const { user, logout, changeUserRole } = useAuth();
   
   const [waNumber, setWaNumber] = useState('');
+  const [paypalUrl, setPaypalUrl] = useState('');
+  const [applePayUrl, setApplePayUrl] = useState('');
+  const [gpayUrl, setGpayUrl] = useState('');
+  const [ibanName, setIbanName] = useState('');
+  const [ibanNumber, setIbanNumber] = useState('');
+  const [ibanBic, setIbanBic] = useState('');
+  const [ibanBank, setIbanBank] = useState('');
   const [targetUserId, setTargetUserId] = useState('');
   const [targetRole, setTargetRole] = useState<Role>('employee');
   const [successMsg, setSuccessMsg] = useState('');
 
   useEffect(() => {
     setWaNumber(localStorage.getItem('nandri_wa_number') || '919000668360');
+    setPaypalUrl(localStorage.getItem('nandri_paypal_url') || 'https://www.paypal.com/donate');
+    setApplePayUrl(localStorage.getItem('nandri_apple_pay_url') || 'https://pay.apple.com');
+    setGpayUrl(localStorage.getItem('nandri_gpay_url') || 'https://pay.google.com');
+    setIbanName(localStorage.getItem('nandri_iban_name') || 'Nandri Kinderhilfe');
+    setIbanNumber(localStorage.getItem('nandri_iban_number') || 'DE00 0000 0000 0000 0000 00');
+    setIbanBic(localStorage.getItem('nandri_iban_bic') || 'NANDRIDEFF');
+    setIbanBank(localStorage.getItem('nandri_iban_bank') || 'Sample Bank');
   }, []);
 
   const handleSaveWa = () => {
@@ -26,6 +40,19 @@ export function Profile() {
   const handleUpdateRole = () => {
     changeUserRole(targetUserId, targetRole);
     setSuccessMsg(`Role updated for user ${targetUserId}`);
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
+  const handleSaveDonations = () => {
+    localStorage.setItem('nandri_paypal_url', paypalUrl);
+    localStorage.setItem('nandri_apple_pay_url', applePayUrl);
+    localStorage.setItem('nandri_gpay_url', gpayUrl);
+    localStorage.setItem('nandri_iban_name', ibanName);
+    localStorage.setItem('nandri_iban_number', ibanNumber);
+    localStorage.setItem('nandri_iban_bic', ibanBic);
+    localStorage.setItem('nandri_iban_bank', ibanBank);
+    localStorage.setItem('nandri_donate_url', paypalUrl || 'https://www.paypal.com/donate');
+    setSuccessMsg('Donation integrations saved!');
     setTimeout(() => setSuccessMsg(''), 3000);
   };
 
@@ -127,6 +154,73 @@ export function Profile() {
                 <button onClick={handleUpdateRole} className="w-full mt-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium">Update Role</button>
               </div>
             </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors duration-300">
+              <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-700/50 flex items-center justify-between">
+                <div className="flex items-center text-gray-700 dark:text-gray-200">
+                  <Heart className="w-5 h-5 mr-3 text-gray-400" />
+                  <span className="text-sm font-medium">Donation Integrations</span>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-400">PayPal URL</label>
+                <input
+                  type="url"
+                  value={paypalUrl}
+                  onChange={(e) => setPaypalUrl(e.target.value)}
+                  className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                />
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-400">Apple Pay URL</label>
+                <input
+                  type="url"
+                  value={applePayUrl}
+                  onChange={(e) => setApplePayUrl(e.target.value)}
+                  className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                />
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-400">Google Pay URL</label>
+                <input
+                  type="url"
+                  value={gpayUrl}
+                  onChange={(e) => setGpayUrl(e.target.value)}
+                  className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-400">IBAN Account Name</label>
+                    <input
+                      type="text"
+                      value={ibanName}
+                      onChange={(e) => setIbanName(e.target.value)}
+                      className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-400">Bank Name</label>
+                    <input
+                      type="text"
+                      value={ibanBank}
+                      onChange={(e) => setIbanBank(e.target.value)}
+                      className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-400">IBAN Number</label>
+                <input
+                  type="text"
+                  value={ibanNumber}
+                  onChange={(e) => setIbanNumber(e.target.value)}
+                  className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                />
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-400">BIC / SWIFT</label>
+                <input
+                  type="text"
+                  value={ibanBic}
+                  onChange={(e) => setIbanBic(e.target.value)}
+                  className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white"
+                />
+                <button onClick={handleSaveDonations} className="w-full mt-2 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium">Save Donation Integrations</button>
+              </div>
+            </div>
           </>
         )}
 
@@ -149,6 +243,24 @@ export function Profile() {
             </button>
           )}
         </div>
+
+        {user.role === 'sponsor' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors duration-300 p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Donation Ways</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <a href={paypalUrl || '#'} target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-lg bg-[#0070ba] text-white text-sm font-medium text-center">PayPal</a>
+              <a href={applePayUrl || '#'} target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-lg bg-black text-white text-sm font-medium text-center">Apple Pay</a>
+              <a href={gpayUrl || '#'} target="_blank" rel="noopener noreferrer" className="px-3 py-2 rounded-lg bg-gray-700 text-white text-sm font-medium text-center">G Pay</a>
+            </div>
+            <div className="rounded-xl bg-gray-50 dark:bg-gray-900 p-3 border border-gray-100 dark:border-gray-700">
+              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">IBAN Transfer</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{ibanName}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{ibanBank}</p>
+              <p className="text-xs text-gray-800 dark:text-gray-200 font-medium">IBAN: {ibanNumber}</p>
+              <p className="text-xs text-gray-800 dark:text-gray-200 font-medium">BIC: {ibanBic}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       <button 

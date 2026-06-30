@@ -33,6 +33,74 @@ For testing purposes, the following default admin logins are pre-configured:
 For a detailed breakdown of the application architecture, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 For planned features and roadmap, see [FUTURE_SCOPE.md](./FUTURE_SCOPE.md).
 
+## June 30 Hackathon Brief
+
+### Goal
+Pick one challenge and develop an idea/prototype/concept/sketch as a group in 45 minutes, then present results.
+
+### Challenges
+1. **Digital Experience Upgrade**  
+   Current website and digital setup are basic, with most content in German only.  
+   Design improved digital experience to maximize:
+   - visibility and traffic
+   - child sponsorships
+   - donations
+
+2. **Student Data System Modernization**  
+   500 children are maintained in multiple local Excel files and one Germany-side file for personalized sponsorship tracking.  
+   Design modern, compliant, decentralized student data system for:
+   - student registration
+   - up-to-date records
+   - sponsor linkage
+
+3. **Mobile Field Update Solution**  
+   40-50 employees in India work on ground and currently use only WhatsApp on basic Android devices.  
+   Design smart mobile solution so field staff can:
+   - share updates with Nandri members in Europe
+   - track changes for sponsored children/families
+   - update website/student data with low friction
+
+4. **Social Media Campaign (Charihackathon)**  
+   Design and kick off campaign to increase awareness and sponsorships.  
+   Define:
+   - campaign concept
+   - practical actions
+   - network leverage strategy
+
+### Presentation & Follow-Up
+- Present group output at end of session.
+- After presentations, contributors can help turn best concepts into reality quickly.
+
+### Design Principles / Requirements
+- Keep it simple.
+- Nandri is lean with minimal administrative overhead.
+- Concepts must be easy to implement and execute.
+- Avoid adding operational complexity or ongoing costs.
+
+### Optional Platform Consideration
+- Salesforce Nonprofit Cloud can be considered for hackathon concepts.
+- 30-day trial: [Nonprofit Cloud and Grantmaking Trial](https://www.salesforce.com/nonprofit/free-trial/nonprofit-cloud-and-grantmaking/?d=pb)
+
+## Screenshots
+
+### Parallel App Views
+- Vite TypeScript App  
+  ![Vite Home](./screenshots/vite-home.png)
+- Next.js App Home  
+  ![Next Home](./screenshots/next-home.png)
+
+### Next.js Feature Pages
+- Reports  
+  ![Next Reports](./screenshots/next-reports.png)
+- Students  
+  ![Next Students](./screenshots/next-students.png)
+- CRM  
+  ![Next CRM](./screenshots/next-crm.png)
+- Profile  
+  ![Next Profile](./screenshots/next-profile.png)
+- Features  
+  ![Next Features](./screenshots/next-features.png)
+
 ## Support
 For quick assistance, chat with us directly via WhatsApp: [+91 9000668360](https://wa.me/919000668360). This configuration can be updated dynamically in the future via the Admin Settings.
 

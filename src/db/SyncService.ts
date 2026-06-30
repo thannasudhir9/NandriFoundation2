@@ -67,6 +67,32 @@ export const SyncService = {
     
     await localDb.syncState.put({ id: 'lastSync', lastSync: new Date().toISOString() });
     
+    // 3. Sync with local SQLite API (firebase mock <-> sqlite and local db)
+    try {
+      const sqlitePullResp = await fetch('/api/sqlite-sync', { method: 'GET' });
+      if (sqlitePullResp.ok) {
+        const sqliteData = await sqlitePullResp.json() as { students?: Student[]; updates?: Update[] };
+        if (sqliteData.students?.length) {
+          await localDb.students.bulkPut(sqliteData.students);
+        }
+        if (sqliteData.updates?.length) {
+          await localDb.updates.bulkPut(sqliteData.updates);
+        }
+      }
+
+      const mergedStudents = await localDb.students.toArray();
+      const mergedUpdates = await localDb.updates.toArray();
+      await fetch('/api/sqlite-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ students: mergedStudents, updates: mergedUpdates }),
+      });
+      await MockCloudDB.pushStudents(mergedStudents);
+      await MockCloudDB.pushUpdates(mergedUpdates);
+    } catch (err) {
+      console.warn('SQLite sync skipped:', err);
+    }
+
     console.log('Sync complete!');
     return { localStudents, localUpdates };
   },

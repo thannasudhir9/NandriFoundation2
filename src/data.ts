@@ -11,6 +11,7 @@ const generateStudents = (): Student[] => {
   for (let i = 1; i <= 100; i++) {
     const name = names[Math.floor(Math.random() * names.length)];
     const sponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+    const donationAmount = sponsor ? (Math.floor(Math.random() * 8) + 3) * 10 : 0;
     students.push({
       id: `s${i}`,
       name: name,
@@ -21,6 +22,7 @@ const generateStudents = (): Student[] => {
       photoUrl: `https://i.pravatar.cc/150?u=${i}`,
       sponsorName: sponsor,
       sponsorEmail: sponsor ? `${sponsor.replace(' ', '.').toLowerCase().replace('.', '')}@example.com` : undefined,
+      donationAmount,
       bio: `${name} is a bright student who loves learning.`,
     });
   }

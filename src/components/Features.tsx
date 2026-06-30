@@ -28,9 +28,24 @@ export function Features() {
       icon: <MessageCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
     },
     {
+      title: 'Donation Integrations',
+      description: 'Integrated donation ways: PayPal, Apple Pay, G Pay, and IBAN bank transfer details.',
+      icon: <MessageCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+    },
+    {
       title: 'Role-based Access Control',
       description: 'Supports dynamic user roles (Super Admin, Admin, Sponsor) to control feature visibility.',
       icon: <Settings className="w-6 h-6 text-green-600 dark:text-green-400" />
+    },
+    {
+      title: 'Social Posting',
+      description: 'Post/share updates to Facebook, Instagram, and LinkedIn directly from the update composer.',
+      icon: <MessageCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+    },
+    {
+      title: 'Voice Assistant',
+      description: 'Voice commands to translate app language, add child info, add users, and read donation information.',
+      icon: <MessageCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
     }
   ];
 

@@ -10,6 +10,7 @@ export interface Student {
   photoUrl: string;
   sponsorName?: string;
   sponsorEmail?: string;
+  donationAmount?: number;
   bio: string;
 }
 

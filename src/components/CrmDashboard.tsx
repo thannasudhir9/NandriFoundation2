@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Student } from '../types';
-import { Search, Plus, Edit2, Save, X, User, Mail, MapPin, GraduationCap, Trash2, Download, Upload, FileText } from 'lucide-react';
+import { Search, Plus, Edit2, Save, X, User, Mail, MapPin, GraduationCap, Trash2, Download, Upload, FileText, RefreshCcw } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useLanguage } from '../LanguageContext';
 import jsPDF from 'jspdf';
@@ -11,16 +11,27 @@ interface CrmDashboardProps {
   onUpdateStudent: (student: Student) => void;
   onAddStudent: (student: Omit<Student, 'id'>) => void;
   onDeleteStudent: (id: string) => void;
+  onSyncNow: () => Promise<void>;
 }
 
-export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDeleteStudent }: CrmDashboardProps) {
+export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDeleteStudent, onSyncNow }: CrmDashboardProps) {
   const [search, setSearch] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [viewType, setViewType] = useState<'excel' | 'json'>('excel');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [syncing, setSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLanguage();
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await onSyncNow();
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   
   const [formData, setFormData] = useState<Partial<Student>>({});
 
@@ -45,6 +56,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
       Village: s.village,
       'Sponsor Name': s.sponsorName || '',
       'Sponsor Email': s.sponsorEmail || '',
+      'Donation Amount': s.donationAmount ?? 0,
       Bio: s.bio || ''
     }));
     
@@ -63,6 +75,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
       Village: 'Sample Village',
       'Sponsor Name': 'John Doe',
       'Sponsor Email': 'john@example.com',
+      'Donation Amount': 50,
       Bio: 'Sample bio notes'
     }];
     const ws = XLSX.utils.json_to_sheet(sampleData);
@@ -93,6 +106,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
           photoUrl: `https://i.pravatar.cc/150?u=${Math.random()}`,
           sponsorName: row['Sponsor Name'] || '',
           sponsorEmail: row['Sponsor Email'] || '',
+          donationAmount: parseFloat(row['Donation Amount']) || 0,
           bio: row.Bio || ''
         });
       });
@@ -112,7 +126,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
 
   const startAdd = () => {
     setFormData({
-      name: '', age: 0, school: '', village: '', grade: '', photoUrl: '', sponsorName: '', sponsorEmail: '', bio: ''
+      name: '', age: 0, school: '', village: '', grade: '', photoUrl: '', sponsorName: '', sponsorEmail: '', donationAmount: 0, bio: ''
     });
     setIsAdding(true);
     setEditingId(null);
@@ -225,6 +239,14 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">{t('addRecord')}</span>
           </button>
+          <button
+            onClick={handleSync}
+            disabled={syncing}
+            className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm disabled:opacity-50"
+          >
+            <RefreshCcw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{syncing ? 'Syncing...' : 'Sync Firebase ↔ SQLite'}</span>
+          </button>
         </div>
       </div>
 
@@ -298,6 +320,10 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
             <div>
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">Sponsor Email</label>
               <input type="email" className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white" value={formData.sponsorEmail || ''} onChange={e => setFormData({...formData, sponsorEmail: e.target.value})} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">Donation Amount (EUR)</label>
+              <input type="number" min="0" className="w-full p-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white" value={formData.donationAmount ?? 0} onChange={e => setFormData({...formData, donationAmount: parseFloat(e.target.value) || 0})} />
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-medium text-gray-700 dark:text-gray-400 mb-1">Bio / Notes</label>
@@ -378,6 +404,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
                       <>
                         <div className="text-sm text-gray-900 dark:text-gray-300 flex items-center gap-1"><User className="w-3 h-3 text-gray-400"/> {student.sponsorName}</div>
                         {student.sponsorEmail && <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1"><Mail className="w-3 h-3 text-gray-400"/> {student.sponsorEmail}</div>}
+                        <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">EUR {(student.donationAmount ?? 0).toFixed(0)}</div>
                       </>
                     ) : (
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
