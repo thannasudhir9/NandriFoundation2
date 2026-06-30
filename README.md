@@ -104,5 +104,32 @@ Pick one challenge and develop an idea/prototype/concept/sketch as a group in 45
 ## Support
 For quick assistance, chat with us directly via WhatsApp: [+91 9000668360](https://wa.me/919000668360). This configuration can be updated dynamically in the future via the Admin Settings.
 
+## Git Authentication Note
+
+Never use GitHub tokens directly in clone/pull/push URLs.  
+Reason: token leak risk through shell history, logs, process lists, screenshots, and shared terminals.
+
+Use GitHub CLI authentication instead:
+
+```bash
+cd /Users/sthanna/NandriFoundation2
+gh auth login
+gh auth setup-git
+git pull origin main
+git push origin main
+```
+
+Non-interactive token flow (safer than URL embedding):
+
+```bash
+export GH_TOKEN='NEW_TOKEN'
+gh auth login --with-token <<< "$GH_TOKEN"
+gh auth setup-git
+git pull origin main
+git push origin main
+```
+
+If a token is ever pasted in chat/URL, rotate it immediately.
+
 ---
 *Built with ❤️ for Nandri Kinderhilfe*
