@@ -1,0 +1,61 @@
+import { Home, Users, PlusCircle, Settings, Database } from 'lucide-react';
+import { useLanguage } from '../LanguageContext';
+
+interface BottomNavProps {
+  currentTab: string;
+  setCurrentTab: (tab: string) => void;
+  role: 'employee' | 'sponsor';
+}
+
+export function BottomNav({ currentTab, setCurrentTab, role }: BottomNavProps) {
+  const { t } = useLanguage();
+  return (
+    <div className="bg-white border-t border-gray-200 px-2 sm:px-6 py-2 pb-safe z-50 shrink-0">
+      <div className="flex justify-between items-center w-full max-w-md mx-auto">
+        <button 
+          onClick={() => setCurrentTab('feed')}
+          className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'feed' ? 'text-green-700' : 'text-gray-500'}`}
+        >
+          <Home className="w-6 h-6 mb-1" />
+          <span className="text-[10px] font-medium hidden sm:block">{t('updates')}</span>
+        </button>
+        
+        <button 
+          onClick={() => setCurrentTab('students')}
+          className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'students' ? 'text-green-700' : 'text-gray-500'}`}
+        >
+          <Users className="w-6 h-6 mb-1" />
+          <span className="text-[10px] font-medium hidden sm:block">{t('students')}</span>
+        </button>
+        
+        {role === 'employee' && (
+          <button 
+            onClick={() => setCurrentTab('add')}
+            className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'add' ? 'text-green-700' : 'text-gray-500'}`}
+          >
+            <PlusCircle className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-medium hidden sm:block">{t('post')}</span>
+          </button>
+        )}
+
+        {role === 'employee' && (
+          <button 
+            onClick={() => setCurrentTab('crm')}
+            className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'crm' ? 'text-green-700' : 'text-gray-500'}`}
+          >
+            <Database className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-medium hidden sm:block">{t('crm')}</span>
+          </button>
+        )}
+        
+        <button 
+          onClick={() => setCurrentTab('profile')}
+          className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'profile' ? 'text-green-700' : 'text-gray-500'}`}
+        >
+          <Settings className="w-6 h-6 mb-1" />
+          <span className="text-[10px] font-medium hidden sm:block">{t('settings')}</span>
+        </button>
+      </div>
+    </div>
+  );
+}

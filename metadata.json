@@ -1,0 +1,6 @@
+{
+  "name": "Nandri Connect",
+  "description": "A decentralized student data system and update sharing platform for Nandri Kinderhilfe e.V.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
