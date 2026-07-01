@@ -67,6 +67,45 @@ Project script (recommended):
 npm run ui:smoke:screenshots
 ```
 
+How to regenerate screenshots (exact latest run):
+
+```bash
+VITE_BASE_URL="http://127.0.0.1:3011" \
+NEXT_BASE_URL="http://127.0.0.1:3011" \
+PLAYWRIGHT_BROWSERS_PATH=0 \
+npm run ui:smoke:screenshots
+```
+
+Generated screenshots (latest set):
+
+```text
+screenshots/vite-home.png
+screenshots/next-home.png
+screenshots/next-reports.png
+screenshots/next-students.png
+screenshots/next-sponsors.png
+screenshots/next-crm.png
+screenshots/next-admin.png
+screenshots/next-profile.png
+screenshots/next-contact.png
+screenshots/next-features.png
+```
+
+Screenshot matrix (page -> filename -> capture method):
+
+| Page / Tab | Filename | How Captured | URL / Marker |
+|---|---|---|---|
+| Vite Home | `screenshots/vite-home.png` | `ui:smoke:screenshots` route capture | URL: `/`, marker: `Nandri` |
+| Next Home | `screenshots/next-home.png` | `ui:smoke:screenshots` route capture | URL: `/`, marker: `Nandri` |
+| Reports | `screenshots/next-reports.png` | `ui:smoke:screenshots` route capture | URL: `/reports`, marker: `Reporting Dashboard` |
+| Students | `screenshots/next-students.png` | `ui:smoke:screenshots` route capture | URL: `/students`, marker: `Students` |
+| Sponsors (tab) | `screenshots/next-sponsors.png` | `ui:smoke:screenshots` tab click + marker wait | Tab: `Sponsors`, marker: `Sponsors` |
+| CRM | `screenshots/next-crm.png` | `ui:smoke:screenshots` route capture | URL: `/crm`, marker: none (404 guard only) |
+| Admin (tab) | `screenshots/next-admin.png` | `ui:smoke:screenshots` tab click + marker wait | Tab: `Admin`, marker: `Admin SQL Console` |
+| Profile | `screenshots/next-profile.png` | `ui:smoke:screenshots` route capture | URL: `/profile`, marker: `Settings` |
+| Contact Us (tab) | `screenshots/next-contact.png` | `ui:smoke:screenshots` tab click + marker wait | Tab: `Contact Us`, marker: `Contact Us` |
+| Features | `screenshots/next-features.png` | `ui:smoke:screenshots` route capture | URL: `/features`, marker: `Application Features` |
+
 SQLite bootstrap (no UI needed):
 
 ```bash

@@ -171,13 +171,16 @@ NandriFoundation2/
 │   ├── SYSTEM_OVERVIEW.md           # System overview
 │   └── TOOLS_AND_SKILLS_USED.md     # Claude tools used
 ├── scripts/
-│   └── ui-smoke-and-screenshots.mjs # Playwright smoke test + screenshots
+│   └── ui-smoke-and-screenshots.mjs # Playwright smoke test + screenshots (includes Sponsors/Admin/Contact tabs)
 ├── screenshots/                      # UI screenshots
 │   ├── next-home.png
+│   ├── next-admin.png
+│   ├── next-contact.png
 │   ├── next-crm.png
 │   ├── next-features.png
 │   ├── next-profile.png
 │   ├── next-reports.png
+│   ├── next-sponsors.png
 │   ├── next-students.png
 │   └── vite-home.png
 ├── out/                              # Static export output (GitHub Pages)

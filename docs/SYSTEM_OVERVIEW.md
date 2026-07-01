@@ -90,12 +90,28 @@
 - Default targets:
   - `http://127.0.0.1:3000/` (Vite view)
   - `http://127.0.0.1:3002/`, `/reports`, `/students`, `/crm`, `/profile`, `/features` (Next.js views)
+- Additional tab captures:
+  - Sponsors tab
+  - Admin tab
+  - Contact Us tab
 - Output path (default): `screenshots/`
 - Config env vars:
   - `VITE_BASE_URL`
   - `NEXT_BASE_URL`
   - `SCREENSHOT_DIR`
   - `UI_TIMEOUT_MS`
+
+Latest screenshot artifacts:
+- `screenshots/vite-home.png`
+- `screenshots/next-home.png`
+- `screenshots/next-reports.png`
+- `screenshots/next-students.png`
+- `screenshots/next-sponsors.png`
+- `screenshots/next-crm.png`
+- `screenshots/next-admin.png`
+- `screenshots/next-profile.png`
+- `screenshots/next-contact.png`
+- `screenshots/next-features.png`
 
 ## Deployment Stack
 - CI/CD: GitHub Actions workflow at `.github/workflows/deploy-pages.yml`

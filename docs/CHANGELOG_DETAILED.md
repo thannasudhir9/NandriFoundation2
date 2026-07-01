@@ -135,6 +135,16 @@ Documentation of major implementation changes completed in current build cycle.
 - Added `INITIAL_SPONSORS` derivation from seeded student sponsorship data.
 - DB seeded and verified with sponsors data (`sponsors: 9` in local test run).
 
+### Screenshots
+- Extended screenshot automation to capture new tabs/pages:
+  - Sponsors
+  - Admin SQL Console
+  - Contact Us
+- Latest screenshot artifacts added:
+  - `next-sponsors.png`
+  - `next-admin.png`
+  - `next-contact.png`
+
 ### Config
 - Updated `next.config.ts` to set `output: 'export'` only under GitHub Actions.
 - Local runtime now supports API routes required for SQLite mode.

@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import Database from 'better-sqlite3';
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-static';
 
 interface Student {
   id: string;
