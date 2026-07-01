@@ -1,7 +1,47 @@
 # Detailed Change Log
 
+**Last Updated:** 2026-07-01 11:10
+
 ## Scope
 Documentation of major implementation changes completed in current build cycle.
+
+---
+
+## 2026-07-01 — Session 2
+
+### Commit `8b070b4` — 2026-07-01 ~11:00
+`feat: add sponsors, admin SQL, contact pages; expand sync, types, i18n, nav`
+
+- Added `SponsorsList.tsx` — sponsors tab with search, donation totals, student counts
+- Added `AdminSqlPage.tsx` — admin SQL interface for direct DB inspection
+- Added `ContactUs.tsx` — contact page
+- Added `app/api/sqlite-sync/route.ts` — active app-tree API route (parity with `src/app/`)
+- Committed `data/nandri.sqlite` (68KB, 100 students, 9 sponsors, 2 updates)
+- Added `scripts/db-init.mjs` — standalone DB bootstrap
+- Expanded `src/types.ts` with Sponsor type
+- Expanded `src/i18n.ts` with sponsors/contact strings
+- Updated `SyncService.ts` — sponsors sync support
+- Updated `BottomNav.tsx` — Sponsors + Contact nav items
+- Updated `App.tsx` — new pages wired into routing
+- Updated `src/data.ts` — `INITIAL_SPONSORS` derivation added
+- New screenshots: next-admin.png, next-contact.png, next-sponsors.png
+
+### Commit `6c86150` — 2026-07-01 ~10:45
+`add DB and features status report with live SQLite data verification`
+
+- Created `docs/DB_AND_FEATURES_STATUS_REPORT.md`
+- Verified 4 SQLite tables live (students: 100, updates: 2, sponsors: 9, sync_meta: 1)
+- Confirmed full data flow: seed → IndexedDB → mock Firebase → SQLite → UI
+
+### Commit `d149891` — 2026-07-01 ~10:00
+`add comprehensive master documentation covering all aspects of the project`
+
+- Created `docs/MASTER_DOCUMENTATION.md` (673 lines)
+- Covers: tech stack, project structure, architecture, DB schema, auth/login, features, design, env vars, CI/CD, all commands, prompt log, git history, changelog
+
+---
+
+## 2026-06-30 — Session 1
 
 ## Commit: `d1af390`  
 `feat: migrate to Next.js and expand operations tooling`
