@@ -2,6 +2,7 @@
 
 > Live site: https://thannasudhir9.github.io/NandriFoundation2/
 > Repository: https://github.com/thannasudhir9/NandriFoundation2
+> Update note (Jul 1): Local runtime now uses SQLite API as primary source of truth; sponsors data + sponsors tab added.
 
 ---
 
@@ -64,10 +65,9 @@
 ### Data & Storage
 | Technology | Purpose |
 |---|---|
-| Dexie (IndexedDB) | Client-side local database (offline-first) |
+| SQLite API (`/api/sqlite-sync`) | Primary local runtime source of truth (students, updates, sponsors) |
 | better-sqlite3 | Server-side SQLite (Next.js API route) |
-| localStorage | Auth state, mock cloud sync cache |
-| Mock Firebase (localStorage) | Simulated cloud sync layer |
+| localStorage | Auth/session auxiliary storage |
 
 ### Export & Reporting
 | Library | Purpose |

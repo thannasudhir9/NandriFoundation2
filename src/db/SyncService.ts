@@ -1,117 +1,139 @@
-import Dexie, { Table } from 'dexie';
-import { Student, Update } from '../types';
+import { Sponsor, Student, Update } from '../types';
 
-// Using Dexie as our "Local DB" since a physical .sqlite file 
-// cannot be written to directly from a static GitHub Pages site.
-// This provides a robust offline-first IndexedDB that acts as our local SQLite clone.
-
-export class LocalDatabase extends Dexie {
-  students!: Table<Student, string>;
-  updates!: Table<Update, string>;
-  syncState!: Table<{ id: string; lastSync: string }, string>;
-
-  constructor() {
-    super('NandriLocalDB');
-    this.version(1).stores({
-      students: 'id, name, sponsorId, village',
-      updates: 'id, studentId, date',
-      syncState: 'id'
-    });
-  }
+interface SqlitePayload {
+  students?: Student[];
+  updates?: Update[];
+  sponsors?: Sponsor[];
 }
 
-export const localDb = new LocalDatabase();
-
-// Mock Cloud Database (Firebase)
-// In a real environment, this would be Firestore SDK calls.
-// Since GCP Resource Manager is disabled in this workspace, we mock the cloud sync.
-const MockCloudDB = {
-  async fetchUpdates(): Promise<Update[]> {
-    const data = localStorage.getItem('mock_firebase_updates');
-    return data ? JSON.parse(data) : [];
-  },
-  async fetchStudents(): Promise<Student[]> {
-    const data = localStorage.getItem('mock_firebase_students');
-    return data ? JSON.parse(data) : [];
-  },
-  async pushUpdates(updates: Update[]) {
-    localStorage.setItem('mock_firebase_updates', JSON.stringify(updates));
-  },
-  async pushStudents(students: Student[]) {
-    localStorage.setItem('mock_firebase_students', JSON.stringify(students));
-  }
-};
-
 export const SyncService = {
-  // Sync in both ways: Local DB (IndexedDB) <--> Cloud DB (Mock Firebase)
-  async syncBothWays() {
-    console.log('Starting two-way sync between Local DB and Cloud DB...');
-    
-    // 1. Pull from Cloud to Local
-    const cloudStudents = await MockCloudDB.fetchStudents();
-    const cloudUpdates = await MockCloudDB.fetchUpdates();
-    
-    if (cloudStudents.length > 0) {
-      await localDb.students.bulkPut(cloudStudents);
+  async readSqlite(): Promise<{ localStudents: Student[]; localUpdates: Update[]; localSponsors: Sponsor[] }> {
+    console.debug('[DB] readSqlite:start', { endpoint: '/api/sqlite-sync', method: 'GET' });
+    const response = await fetch('/api/sqlite-sync', { method: 'GET' });
+    if (!response.ok) {
+      console.error('[DB] readSqlite:error', { status: response.status, statusText: response.statusText });
+      throw new Error('Failed to read SQLite data');
     }
-    if (cloudUpdates.length > 0) {
-      await localDb.updates.bulkPut(cloudUpdates);
+    const data = (await response.json()) as SqlitePayload;
+    const result = {
+      localStudents: Array.isArray(data.students) ? data.students : [],
+      localUpdates: Array.isArray(data.updates) ? data.updates : [],
+      localSponsors: Array.isArray(data.sponsors) ? data.sponsors : [],
+    };
+    console.info('[DB] readSqlite:ok', {
+      students: result.localStudents.length,
+      updates: result.localUpdates.length,
+      sponsors: result.localSponsors.length,
+    });
+    return result;
+  },
+
+  async writeSqlite(students: Student[], updates: Update[], sponsors: Sponsor[]): Promise<void> {
+    console.debug('[DB] writeSqlite:start', {
+      endpoint: '/api/sqlite-sync',
+      method: 'POST',
+      students: students.length,
+      updates: updates.length,
+      sponsors: sponsors.length,
+    });
+    const response = await fetch('/api/sqlite-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ students, updates, sponsors }),
+    });
+    if (!response.ok) {
+      console.error('[DB] writeSqlite:error', { status: response.status, statusText: response.statusText });
+      throw new Error('Failed to write SQLite data');
     }
+    console.info('[DB] writeSqlite:ok', {
+      students: students.length,
+      updates: updates.length,
+      sponsors: sponsors.length,
+    });
+  },
 
-    // 2. Push from Local to Cloud
-    const localStudents = await localDb.students.toArray();
-    const localUpdates = await localDb.updates.toArray();
-    
-    await MockCloudDB.pushStudents(localStudents);
-    await MockCloudDB.pushUpdates(localUpdates);
-    
-    await localDb.syncState.put({ id: 'lastSync', lastSync: new Date().toISOString() });
-    
-    // 3. Sync with local SQLite API (firebase mock <-> sqlite and local db)
-    try {
-      const sqlitePullResp = await fetch('/api/sqlite-sync', { method: 'GET' });
-      if (sqlitePullResp.ok) {
-        const sqliteData = await sqlitePullResp.json() as { students?: Student[]; updates?: Update[] };
-        if (sqliteData.students?.length) {
-          await localDb.students.bulkPut(sqliteData.students);
-        }
-        if (sqliteData.updates?.length) {
-          await localDb.updates.bulkPut(sqliteData.updates);
-        }
-      }
-
-      const mergedStudents = await localDb.students.toArray();
-      const mergedUpdates = await localDb.updates.toArray();
-      await fetch('/api/sqlite-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ students: mergedStudents, updates: mergedUpdates }),
+  async ensureSeededFromCurrentAppData(fallbackStudents: Student[], fallbackUpdates: Update[], fallbackSponsors: Sponsor[]) {
+    const { localStudents, localUpdates, localSponsors } = await this.readSqlite();
+    if (localStudents.length > 0 || localUpdates.length > 0 || localSponsors.length > 0) {
+      console.debug('[DB] seed:skip', {
+        reason: 'existing-data',
+        students: localStudents.length,
+        updates: localUpdates.length,
+        sponsors: localSponsors.length,
       });
-      await MockCloudDB.pushStudents(mergedStudents);
-      await MockCloudDB.pushUpdates(mergedUpdates);
-    } catch (err) {
-      console.warn('SQLite sync skipped:', err);
+      return;
     }
 
-    console.log('Sync complete!');
-    return { localStudents, localUpdates };
+    const mockStudentsRaw = typeof window !== 'undefined' ? localStorage.getItem('mock_firebase_students') : null;
+    const mockUpdatesRaw = typeof window !== 'undefined' ? localStorage.getItem('mock_firebase_updates') : null;
+    const mockStudents = mockStudentsRaw ? (JSON.parse(mockStudentsRaw) as Student[]) : [];
+    const mockUpdates = mockUpdatesRaw ? (JSON.parse(mockUpdatesRaw) as Update[]) : [];
+
+    const seedStudents = mockStudents.length > 0 ? mockStudents : fallbackStudents;
+    const seedUpdates = mockUpdates.length > 0 ? mockUpdates : fallbackUpdates;
+    console.info('[DB] seed:apply', {
+      students: seedStudents.length,
+      updates: seedUpdates.length,
+      sponsors: fallbackSponsors.length,
+      source: mockStudents.length > 0 || mockUpdates.length > 0 ? 'localStorage-mock' : 'fallback-seed',
+    });
+    await this.writeSqlite(seedStudents, seedUpdates, fallbackSponsors);
+  },
+
+  async syncBothWays() {
+    return this.readSqlite();
   },
 
   async getLocalStudents() {
-    return await localDb.students.toArray();
+    const { localStudents } = await this.readSqlite();
+    return localStudents;
   },
 
   async getLocalUpdates() {
-    return await localDb.updates.toArray();
+    const { localUpdates } = await this.readSqlite();
+    return localUpdates;
+  },
+
+  async getLocalSponsors() {
+    const { localSponsors } = await this.readSqlite();
+    return localSponsors;
   },
 
   async saveStudentLocally(student: Student) {
-    await localDb.students.put(student);
-    this.syncBothWays(); // trigger background sync
+    const { localStudents, localUpdates, localSponsors } = await this.readSqlite();
+    const index = localStudents.findIndex((item) => item.id === student.id);
+    const operation = index >= 0 ? 'update' : 'create';
+    if (index >= 0) {
+      localStudents[index] = student;
+    } else {
+      localStudents.unshift(student);
+    }
+    console.debug('[DB] saveStudentLocally', { operation, studentId: student.id, nextStudents: localStudents.length });
+    await this.writeSqlite(localStudents, localUpdates, localSponsors);
   },
 
   async saveUpdateLocally(update: Update) {
-    await localDb.updates.put(update);
-    this.syncBothWays(); // trigger background sync
-  }
+    const { localStudents, localUpdates, localSponsors } = await this.readSqlite();
+    const index = localUpdates.findIndex((item) => item.id === update.id);
+    const operation = index >= 0 ? 'update' : 'create';
+    if (index >= 0) {
+      localUpdates[index] = update;
+    } else {
+      localUpdates.unshift(update);
+    }
+    console.debug('[DB] saveUpdateLocally', { operation, updateId: update.id, nextUpdates: localUpdates.length });
+    await this.writeSqlite(localStudents, localUpdates, localSponsors);
+  },
+
+  async deleteStudentLocally(id: string) {
+    const { localStudents, localUpdates, localSponsors } = await this.readSqlite();
+    const nextStudents = localStudents.filter((student) => student.id !== id);
+    const nextUpdates = localUpdates.filter((update) => update.studentId !== id);
+    console.debug('[DB] deleteStudentLocally', {
+      studentId: id,
+      nextStudents: nextStudents.length,
+      nextUpdates: nextUpdates.length,
+    });
+    await this.writeSqlite(nextStudents, nextUpdates, localSponsors);
+  },
 };

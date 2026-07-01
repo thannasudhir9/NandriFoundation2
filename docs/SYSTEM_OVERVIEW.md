@@ -10,10 +10,9 @@
 - Runtime/server: Node.js (Next.js server + API routes).
 
 ## Database Stack
-- Browser local DB: IndexedDB via Dexie.
-- Cloud mock DB: localStorage-backed Firebase simulation.
 - Local server DB: SQLite via better-sqlite3.
 - Sync orchestrator: `src/db/SyncService.ts`.
+- Runtime source of truth: SQLite API (`/api/sqlite-sync`) in local/dev runtime.
 
 ## Database Details
 
@@ -21,19 +20,13 @@
 - DB file: `data/nandri.sqlite`
 - API route: `src/app/api/sqlite-sync/route.ts`
 - Endpoints:
-  - `GET /api/sqlite-sync` -> read `{ ok, students, updates }`
-  - `POST /api/sqlite-sync` -> write full snapshot, return `{ ok, students, updates, syncedAt }`
+  - `GET /api/sqlite-sync` -> read `{ ok, students, updates, sponsors }`
+  - `POST /api/sqlite-sync` -> write full snapshot, return `{ ok, students, updates, sponsors, syncedAt }`
 - Tables:
   - `students (id TEXT PRIMARY KEY, payload TEXT NOT NULL)`
   - `updates (id TEXT PRIMARY KEY, payload TEXT NOT NULL)`
+  - `sponsors (id TEXT PRIMARY KEY, payload TEXT NOT NULL)`
   - `sync_meta (id TEXT PRIMARY KEY, payload TEXT NOT NULL)`
-
-### IndexedDB (Dexie)
-- DB name: `NandriLocalDB`
-- Stores:
-  - `students: 'id, name, sponsorId, village'`
-  - `updates: 'id, studentId, date'`
-  - `syncState: 'id'`
 
 ### Domain Data Shape
 - Student:
@@ -43,13 +36,15 @@
   - `id`, `authorName`, `date`, `content`, `type`
   - optional: `studentId`, `photoUrl`
   - `type` values: `general | student`
+- Sponsor:
+  - `id`, `name`, `email`, `donationTotal`, `sponsoredStudentCount`
+  - optional: `phone`, `country`
 
 ## Sync Architecture
-- 1) Pull cloud mock -> Dexie local.
-- 2) Push Dexie local -> cloud mock.
-- 3) Pull SQLite API -> Dexie local.
-- 4) Push merged Dexie -> SQLite API.
-- 5) Write `lastSync` metadata.
+- 1) Seed SQLite once from current app data if empty.
+- 2) Read students/updates/sponsors from SQLite API.
+- 3) Persist all writes (student/update/delete) back to SQLite API.
+- 4) Write `lastSync` metadata in SQLite.
 - Trigger points:
   - app bootstrap sync
   - save student/update local actions
@@ -81,7 +76,13 @@
 - `npm run build` -> production build / static export.
 - `npm run start` -> production server.
 - `npm run lint` -> TypeScript check (`tsc --noEmit`).
+- `npm run db:init` -> create local `data/nandri.sqlite` and base tables.
 - `npm run ui:smoke:screenshots` -> UI smoke validation + screenshot generation.
+
+## Latest Functional Additions
+- Sponsors dataset persisted in SQLite `sponsors` table.
+- New `Sponsors` tab placed beside `Students` in bottom navigation.
+- `next.config.ts` uses `output: 'export'` only in GitHub Actions, so local runtime can serve API routes.
 
 ## UI Smoke + Screenshot Handler
 - Script: `scripts/ui-smoke-and-screenshots.mjs`

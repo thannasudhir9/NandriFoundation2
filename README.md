@@ -11,7 +11,18 @@ Nandri Connect is a progressive web application designed to bridge the gap betwe
 - **Multilingual Support**: Fully localized in English and German (DE).
 - **Authentication**: Fully functional standalone user authentication flow with local persistence. Default Admin credentials available.
 - **CRM Dashboard**: Excel export/import support for managing large volumes of student records, locations, and sponsor assignments.
-- **Offline-First Local DB & Sync**: Implements a robust `SyncService` that utilizes IndexedDB (via Dexie) as a localized database (since physical `.sqlite` files cannot be read-write in standard static deployments). It automatically syncs two-way with the Cloud DB, ensuring you can run offline while maintaining state.
+- **SQLite-First Local Data**: `SyncService` now uses local SQLite via `/api/sqlite-sync` as primary source for app data in local runtime.
+- **Sponsors Module**: Sponsors are persisted in DB and visible in a dedicated `Sponsors` tab placed beside `Students`.
+- **Admin SQL Console (Employee/Superadmin)**:
+  - View complete DB tables (`students`, `updates`, `sponsors`)
+  - Create / Edit / Delete records directly in app
+  - Persists all changes to SQLite through API
+- **Contact Us Tab**: In-app issue reporting flow with prefilled support email to `sthanna@salesforce.com`.
+- **Web-Style Navigation**: Desktop/tablet now uses top tabs like a website; mobile keeps bottom nav.
+- **Responsive UI**: Unified responsive layout for web, laptop, and mobile.
+- **DB Debug Logging**:
+  - Browser console logs for read/write/seed/create/update/delete/sync
+  - API/server logs for request payload counts and DB operations
 
 ## Setup & Installation
 
@@ -104,12 +115,48 @@ Pick one challenge and develop an idea/prototype/concept/sketch as a group in 45
   ![Next Reports](./screenshots/next-reports.png)
 - Students  
   ![Next Students](./screenshots/next-students.png)
+- Sponsors  
+  ![Next Sponsors](./screenshots/next-sponsors.png)
 - CRM  
   ![Next CRM](./screenshots/next-crm.png)
+- Admin SQL Console  
+  ![Next Admin](./screenshots/next-admin.png)
 - Profile  
   ![Next Profile](./screenshots/next-profile.png)
+- Contact Us  
+  ![Next Contact](./screenshots/next-contact.png)
 - Features  
   ![Next Features](./screenshots/next-features.png)
+
+## Feature Walkthrough (Latest)
+
+### 1) Home + Website Tabs
+- Home opens as feed-focused landing surface.
+- Desktop/tablet top tabs provide website-like navigation.
+- Mobile continues with bottom tab navigation.
+
+### 2) Students + Sponsors
+- Students tab shows searchable student directory and sponsorship visibility.
+- Sponsors tab shows sponsor directory, donation totals, and sponsored-child counts.
+
+### 3) CRM + Admin SQL
+- CRM tab supports operational data management and sync.
+- Admin SQL tab (employee/superadmin) exposes full table-level CRUD for `students`, `updates`, `sponsors`.
+
+### 4) Reports + Insights
+- Reports page provides KPI cards and visual analytics:
+  - quarterly
+  - half-yearly
+  - annual views
+
+### 5) Contact + Support
+- Contact Us tab gives direct issue escalation path.
+- One-click `mailto:` to `sthanna@salesforce.com` with issue template.
+
+### 6) Data + Persistence
+- Local runtime uses SQLite API as source of truth.
+- DB file: `data/nandri.sqlite`
+- App reads/writes through `/api/sqlite-sync`.
 
 ### UI Smoke + Screenshot Handler
 

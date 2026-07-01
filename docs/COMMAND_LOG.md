@@ -67,6 +67,24 @@ Project script (recommended):
 npm run ui:smoke:screenshots
 ```
 
+SQLite bootstrap (no UI needed):
+
+```bash
+npm run db:init
+```
+
+Seed DB from current app datasets (students + updates + sponsors):
+
+```bash
+npx tsx -e "import { INITIAL_STUDENTS, INITIAL_UPDATES, INITIAL_SPONSORS } from './src/data.ts'; (async () => { const resp = await fetch('http://127.0.0.1:3011/api/sqlite-sync/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ students: INITIAL_STUDENTS, updates: INITIAL_UPDATES, sponsors: INITIAL_SPONSORS }) }); console.log(await resp.text()); })();"
+```
+
+Verify SQLite table counts:
+
+```bash
+node -e "const Database=require('better-sqlite3'); const db=new Database('data/nandri.sqlite'); console.log({students:db.prepare('SELECT COUNT(*) c FROM students').get().c,updates:db.prepare('SELECT COUNT(*) c FROM updates').get().c,sponsors:db.prepare('SELECT COUNT(*) c FROM sponsors').get().c}); db.close();"
+```
+
 Configurable envs:
 
 ```bash

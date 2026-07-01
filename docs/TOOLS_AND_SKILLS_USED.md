@@ -4,7 +4,6 @@
 - Next.js (App Router, static export)
 - React + TypeScript
 - Tailwind CSS
-- Dexie (browser local DB)
 - better-sqlite3 (server-side local SQLite)
 - Recharts (reporting charts)
 - Playwright (UI smoke + screenshots)
@@ -35,6 +34,7 @@
 - Architecture migration (Vite -> Next.js).
 - Reporting design + KPI modeling.
 - Ops tooling design (chat commands + voice assistant).
-- Sync architecture (Firebase mock ↔ Dexie ↔ SQLite).
+- Sync architecture refactor (SQLite API as local source of truth).
+- Sponsors module design + DB persistence.
 - CI/CD hardening for GitHub Pages.
 - Documentation packaging for delivery traceability.

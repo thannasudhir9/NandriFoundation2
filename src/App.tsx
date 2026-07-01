@@ -4,11 +4,12 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { INITIAL_STUDENTS, INITIAL_UPDATES } from './data';
-import { Update, Student } from './types';
+import { INITIAL_SPONSORS, INITIAL_STUDENTS, INITIAL_UPDATES } from './data';
+import { Sponsor, Update, Student } from './types';
 import { BottomNav } from './components/BottomNav';
 import { Feed } from './components/Feed';
 import { StudentsList } from './components/StudentsList';
+import { SponsorsList } from './components/SponsorsList';
 import { AddUpdate } from './components/AddUpdate';
 import { Profile } from './components/Profile';
 import { CrmDashboard } from './components/CrmDashboard';
@@ -17,13 +18,21 @@ import { AuthUI } from './components/AuthUI';
 import { Monitor, Smartphone, Globe, ArrowUp, ArrowDown, MessageCircle, Home, Laptop, Moon, Sun } from 'lucide-react';
 import { useLanguage } from './LanguageContext';
 import { useAuth } from './AuthContext';
-import { SyncService, localDb } from './db/SyncService';
+import { SyncService } from './db/SyncService';
 import { useTheme } from './ThemeContext';
 
 import { Features } from './components/Features';
 import { LiveChatOps, ParsedCommand } from './components/LiveChatOps';
 import { VoiceAssistant } from './components/VoiceAssistant';
 import { Role } from './types';
+import { ContactUs } from './components/ContactUs';
+import { AdminSqlPage } from './components/AdminSqlPage';
+
+interface TabOption {
+  id: string;
+  label: string;
+  visible: boolean;
+}
 
 export default function App() {
   return <AppShell />;
@@ -34,10 +43,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ initialTab = 'feed' }: AppShellProps) {
-  const [viewMode, setViewMode] = useState<'desktop' | 'laptop' | 'mobile'>('desktop');
   const [currentTab, setCurrentTab] = useState(initialTab);
   const [updates, setUpdates] = useState<Update[]>(INITIAL_UPDATES);
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
+  const [sponsors, setSponsors] = useState<Sponsor[]>(INITIAL_SPONSORS);
   
   const { language, setLanguage, t } = useLanguage();
   const { user, logout } = useAuth();
@@ -48,13 +57,14 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
 
   const role = user?.role || 'sponsor';
   const isStaff = role === 'employee' || role === 'superadmin';
+  const deployedAt = process.env.NEXT_PUBLIC_DEPLOY_DATE || new Date().toISOString().slice(0, 10);
 
   useEffect(() => {
     setCurrentTab(initialTab);
   }, [initialTab]);
 
   useEffect(() => {
-    const staffOnlyTabs = new Set(['dashboard', 'add', 'crm']);
+    const staffOnlyTabs = new Set(['dashboard', 'add', 'crm', 'admin']);
     if (!isStaff && staffOnlyTabs.has(currentTab)) {
       setCurrentTab('feed');
     }
@@ -70,16 +80,17 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
   useEffect(() => {
     // Initial sync on mount
     const initSync = async () => {
-      // Seed local DB if empty
-      const existingStudents = await localDb.students.count();
-      if (existingStudents === 0) {
-        await localDb.students.bulkPut(INITIAL_STUDENTS);
-        await localDb.updates.bulkPut(INITIAL_UPDATES);
-      }
-      
-      const { localStudents, localUpdates } = await SyncService.syncBothWays();
+      console.info('[DB][App] initSync:start');
+      await SyncService.ensureSeededFromCurrentAppData(INITIAL_STUDENTS, INITIAL_UPDATES, INITIAL_SPONSORS);
+      const { localStudents, localUpdates, localSponsors } = await SyncService.syncBothWays();
       if (localStudents.length > 0) setStudents(localStudents);
       if (localUpdates.length > 0) setUpdates(localUpdates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      if (localSponsors.length > 0) setSponsors(localSponsors);
+      console.info('[DB][App] initSync:done', {
+        students: localStudents.length,
+        updates: localUpdates.length,
+        sponsors: localSponsors.length,
+      });
     };
     initSync();
   }, []);
@@ -90,6 +101,7 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
       id: Math.random().toString(36).substr(2, 9),
       date: new Date().toISOString(),
     };
+    console.debug('[DB][App] handleAddUpdate', { updateId: update.id, type: update.type, studentId: update.studentId });
     setUpdates([update, ...updates]);
     await SyncService.saveUpdateLocally(update);
   };
@@ -99,25 +111,34 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
       ...newStudent,
       id: Math.random().toString(36).substr(2, 9),
     };
+    console.debug('[DB][App] handleAddStudent', { studentId: student.id, name: student.name });
     setStudents([student, ...students]);
     await SyncService.saveStudentLocally(student);
   };
 
   const handleUpdateStudent = async (updatedStudent: Student) => {
+    console.debug('[DB][App] handleUpdateStudent', { studentId: updatedStudent.id, name: updatedStudent.name });
     setStudents(students.map(s => s.id === updatedStudent.id ? updatedStudent : s));
     await SyncService.saveStudentLocally(updatedStudent);
   };
 
   const handleDeleteStudent = async (id: string) => {
+    console.debug('[DB][App] handleDeleteStudent', { studentId: id });
     setStudents(students.filter(s => s.id !== id));
-    await localDb.students.delete(id);
-    SyncService.syncBothWays();
+    await SyncService.deleteStudentLocally(id);
   };
 
   const handleManualSync = async () => {
-    const { localStudents, localUpdates } = await SyncService.syncBothWays();
+    console.info('[DB][App] handleManualSync:start');
+    const { localStudents, localUpdates, localSponsors } = await SyncService.syncBothWays();
     setStudents(localStudents);
     setUpdates(localUpdates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+    setSponsors(localSponsors);
+    console.info('[DB][App] handleManualSync:done', {
+      students: localStudents.length,
+      updates: localUpdates.length,
+      sponsors: localSponsors.length,
+    });
   };
 
   const addUserRecord = async (input: { name: string; email: string; role: Role }): Promise<void> => {
@@ -231,22 +252,51 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
     switch(currentTab) {
       case 'feed': return <Feed updates={updates} students={students} />;
       case 'students': return <StudentsList students={students} role={role} />;
+      case 'sponsors': return <SponsorsList sponsors={sponsors} />;
       case 'dashboard': return (role === 'employee' || role === 'superadmin') ? <Dashboard students={students} /> : null;
       case 'add': return (role === 'employee' || role === 'superadmin') ? <AddUpdate students={students} onAddUpdate={handleAddUpdate} onSuccess={() => setCurrentTab('feed')} /> : null;
       case 'crm': return (role === 'employee' || role === 'superadmin') ? <CrmDashboard students={students} onAddStudent={handleAddStudent} onUpdateStudent={handleUpdateStudent} onDeleteStudent={handleDeleteStudent} onSyncNow={handleManualSync} /> : null;
+      case 'admin':
+        return (role === 'employee' || role === 'superadmin') ? (
+          <AdminSqlPage
+            onDataChanged={({ students: nextStudents, updates: nextUpdates, sponsors: nextSponsors }) => {
+              setStudents(nextStudents);
+              setUpdates(nextUpdates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+              setSponsors(nextSponsors);
+              console.info('[DB][App] admin:dataChanged', {
+                students: nextStudents.length,
+                updates: nextUpdates.length,
+                sponsors: nextSponsors.length,
+              });
+            }}
+          />
+        ) : null;
       case 'profile': return <Profile />;
+      case 'contact': return <ContactUs />;
       case 'features': return <Features />;
       default: return null;
     }
   };
 
+  const tabOptions: TabOption[] = [
+    { id: 'feed', label: t('updates'), visible: true },
+    { id: 'students', label: t('students'), visible: true },
+    { id: 'sponsors', label: t('sponsors'), visible: true },
+    { id: 'features', label: 'Features', visible: true },
+    { id: 'dashboard', label: t('dashboard'), visible: isStaff },
+    { id: 'add', label: t('post'), visible: isStaff },
+    { id: 'crm', label: t('crm'), visible: isStaff },
+    { id: 'admin', label: 'Admin', visible: isStaff },
+    { id: 'contact', label: t('contactUs'), visible: true },
+    { id: 'profile', label: t('settings'), visible: true },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-200 dark:bg-gray-950 flex flex-col font-sans selection:bg-green-100 selection:text-green-900 transition-colors duration-300">
-      {/* Top Device Preview Bar */}
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950 flex flex-col font-sans selection:bg-green-100 selection:text-green-900 transition-colors duration-300">
       <div className="bg-white dark:bg-gray-900 border-b border-gray-300 dark:border-gray-800 px-4 py-3 flex justify-between items-center z-[100] relative shadow-sm transition-colors duration-300">
         <h1 className="font-bold text-gray-800 dark:text-white flex items-center gap-2">
           <div className="w-6 h-6 bg-green-600 rounded-md"></div>
-          <span className="hidden sm:inline">Nandri Connect Preview</span>
+          <span className="hidden sm:inline">Nandri Connect</span>
         </h1>
         <div className="flex items-center gap-4">
           <a 
@@ -276,38 +326,30 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
               <option value="de">DE</option>
             </select>
           </div>
-          <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1 hidden md:flex transition-colors duration-300">
-            <button 
-              onClick={() => setViewMode('desktop')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${viewMode === 'desktop' ? 'bg-white dark:bg-gray-700 shadow-sm text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-            >
-              <Monitor className="w-4 h-4" /> Web App
-            </button>
-            <button 
-              onClick={() => setViewMode('laptop')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${viewMode === 'laptop' ? 'bg-white dark:bg-gray-700 shadow-sm text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-            >
-              <Laptop className="w-4 h-4" /> Laptop
-            </button>
-            <button 
-              onClick={() => setViewMode('mobile')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-2 transition-colors ${viewMode === 'mobile' ? 'bg-white dark:bg-gray-700 shadow-sm text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
-            >
-              <Smartphone className="w-4 h-4" /> Mobile App
-            </button>
-          </div>
+        </div>
+      </div>
+      <div className="hidden md:block bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-wrap gap-2">
+          {tabOptions
+            .filter((tab) => tab.visible)
+            .map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setCurrentTab(tab.id)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  currentTab === tab.id
+                    ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden flex justify-center items-center relative">
-        {/* Render area */}
-        <div className={`${
-          viewMode === 'desktop' ? 'w-full h-full' : 
-          viewMode === 'laptop' ? 'w-full h-full' : 
-          'w-[375px] h-[812px] my-8 rounded-[3rem] border-[12px] border-gray-900 shrink-0 shadow-2xl relative overflow-hidden'
-        } bg-gray-50 dark:bg-gray-900 flex flex-col transition-all duration-500 ease-in-out`}>
-          
-          {/* App Header with Login/Sign Up */}
+      <div className="flex-1 overflow-hidden flex justify-center relative">
+        <div className="w-full bg-gray-50 dark:bg-gray-900 flex flex-col transition-all duration-500 ease-in-out">
           <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex justify-between items-center shrink-0 z-50 transition-colors duration-300">
             <div className="flex items-center gap-4">
               <button 
@@ -365,7 +407,7 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
             </div>
           </div>
 
-          <div ref={scrollRef} className="flex-1 overflow-y-auto pb-safe scroll-smooth">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto pb-safe scroll-smooth max-w-7xl w-full mx-auto">
             {renderContent()}
           </div>
           
@@ -405,9 +447,13 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
             )}
           </div>
           
-          {user && <BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} role={role} />}
+          {user && <div className="md:hidden"><BottomNav currentTab={currentTab} setCurrentTab={setCurrentTab} role={role} /></div>}
         </div>
       </div>
+
+      <footer className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 py-3 px-4 text-xs text-gray-500 dark:text-gray-400 text-center">
+        Latest deploy date: {deployedAt}
+      </footer>
     </div>
   );
 }

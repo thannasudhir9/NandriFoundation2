@@ -1,4 +1,4 @@
-import { Student, Update } from './types';
+import { Sponsor, Student, Update } from './types';
 
 const names = ['Aarav', 'Priya', 'Karthik', 'Saanvi', 'Rohan', 'Ananya', 'Vivaan', 'Diya', 'Aditya', 'Ishaan', 'Neha', 'Arjun', 'Meera', 'Krishna', 'Sara', 'Rahul', 'Kavya', 'Om', 'Sita', 'Vikram'];
 const villages = ['Irular Village A', 'Irular Village B', 'Irular Village C', 'Thiruvallur', 'Kanchipuram'];
@@ -30,6 +30,34 @@ const generateStudents = (): Student[] => {
 };
 
 export const INITIAL_STUDENTS: Student[] = generateStudents();
+
+const generateSponsors = (students: Student[]): Sponsor[] => {
+  const sponsorMap = new Map<string, Sponsor>();
+  for (const student of students) {
+    if (!student.sponsorName) continue;
+    const key = student.sponsorName.trim().toLowerCase();
+    const donation = student.donationAmount || 0;
+    const current = sponsorMap.get(key);
+    if (current) {
+      current.sponsoredStudentCount += 1;
+      current.donationTotal += donation;
+      continue;
+    }
+
+    sponsorMap.set(key, {
+      id: `sp-${key.replace(/[^a-z0-9]+/g, '-')}`,
+      name: student.sponsorName,
+      email: student.sponsorEmail || `${key.replace(/\s+/g, '.')}@example.com`,
+      phone: '+49-000-000000',
+      country: 'Germany',
+      donationTotal: donation,
+      sponsoredStudentCount: 1,
+    });
+  }
+  return Array.from(sponsorMap.values()).sort((a, b) => b.donationTotal - a.donationTotal);
+};
+
+export const INITIAL_SPONSORS: Sponsor[] = generateSponsors(INITIAL_STUDENTS);
 
 export const INITIAL_UPDATES: Update[] = [
   {

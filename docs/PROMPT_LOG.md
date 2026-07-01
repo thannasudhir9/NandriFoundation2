@@ -40,6 +40,11 @@ Consolidated user prompt history for implementation traceability.
     - prompt logs
     - design
     - architecture
+15. Create UI smoke + screenshot handler script and document tools/skills used.
+16. Verify `data/nandri.sqlite` creation behavior and add DB init script.
+17. Populate app data into SQLite and switch app to DB-only mode.
+18. Add sponsors data to DB and create Sponsors tab beside Students.
+19. Update all documentation to reflect latest architecture and data changes.
 
 ## Notes
 - Prompts intentionally summarized and normalized for documentation readability.

@@ -39,6 +39,10 @@
 - Sync-first CRM:
   - explicit manual sync button
   - auto sync on write
-  - SQLite + Firebase mock two-way bridge
+  - SQLite-first source of truth for local runtime
+- Sponsors management visibility:
+  - dedicated Sponsors tab beside Students
+  - quick sponsor discovery by name/email/country
+  - sponsor-level donation and sponsored-children rollups
 - Screenshot-ready docs:
   - stable set of route screenshots for product communication.

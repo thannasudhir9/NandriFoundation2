@@ -5,7 +5,7 @@ const repositoryName = 'NandriFoundation2';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: 'export',
+  ...(isGithubActions ? { output: 'export' as const } : {}),
   images: {
     unoptimized: true,
   },

@@ -23,3 +23,13 @@ export interface Update {
   photoUrl?: string;
   type: 'general' | 'student';
 }
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  country?: string;
+  donationTotal: number;
+  sponsoredStudentCount: number;
+}

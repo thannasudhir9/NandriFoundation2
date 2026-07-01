@@ -11,7 +11,7 @@
   - `app/*`
   - `src/app/*` fallback tree
 - Feature components:
-  - feed, students, CRM, dashboard, profile, features
+  - feed, students, sponsors, CRM, dashboard, profile, features
   - reports component set
   - live chat ops
   - voice assistant
@@ -20,21 +20,21 @@
 - Core entities:
   - `Student`
   - `Update`
+  - `Sponsor`
 - Reporting DTOs and aggregation in `lib/reporting/*`.
 
 ### Data Layer
-- Local browser DB: Dexie (`src/db/SyncService.ts`).
-- Cloud mock: localStorage-backed Firebase simulation.
-- Local server DB: SQLite (`src/app/api/sqlite-sync/route.ts`).
+- Local server DB (primary): SQLite (`src/app/api/sqlite-sync/route.ts` and `app/api/sqlite-sync/route.ts`).
+- Sync service persists app state via `/api/sqlite-sync`.
+- SQLite tables: `students`, `updates`, `sponsors`, `sync_meta`.
 
 ## Sync Architecture
 
 ### Flow
-1. Pull cloud mock → local Dexie.
-2. Persist local Dexie → cloud mock.
-3. Pull SQLite API → local Dexie (merge path).
-4. Push merged local Dexie → SQLite API.
-5. Persist `lastSync` metadata.
+1. Seed SQLite from current app data if empty.
+2. Read students/updates/sponsors from SQLite API.
+3. Persist writes (add/update/delete) back to SQLite API.
+4. Persist `lastSync` metadata.
 
 ### Trigger Points
 - App bootstrap sync.

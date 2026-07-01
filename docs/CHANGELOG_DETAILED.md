@@ -67,6 +67,38 @@ Documentation of major implementation changes completed in current build cycle.
 - Added manual sync button in CRM:
   - `Sync Firebase ↔ SQLite`
 
+## Post-Migration Updates (Jul 1)
+
+### Commit Scope
+`feat: sqlite-first data mode + sponsors module`
+
+### Data Layer
+- Refactored `SyncService` to use SQLite API as primary source of truth.
+- Removed runtime dependency on Dexie/local mock for primary app reads/writes.
+- Added sponsors persistence support in SQLite payload and storage flow.
+
+### SQLite Schema / API
+- Added `sponsors` table to SQLite initialization and API read/write flow.
+- Updated `/api/sqlite-sync` payload:
+  - GET returns `students`, `updates`, `sponsors`
+  - POST accepts and stores `students`, `updates`, `sponsors`
+- Added route implementation in `app/api/sqlite-sync/route.ts` for active app tree parity.
+
+### UI / Navigation
+- Added new `Sponsors` tab beside `Students` in bottom navigation.
+- Added sponsors listing screen with:
+  - search by name/email/country
+  - donation totals
+  - sponsored children counts
+
+### Seed / Population
+- Added `INITIAL_SPONSORS` derivation from seeded student sponsorship data.
+- DB seeded and verified with sponsors data (`sponsors: 9` in local test run).
+
+### Config
+- Updated `next.config.ts` to set `output: 'export'` only under GitHub Actions.
+- Local runtime now supports API routes required for SQLite mode.
+
 ### Screenshots / Docs
 - Added screenshot set in `screenshots/`.
 - Updated README with screenshot gallery.

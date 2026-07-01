@@ -9,6 +9,7 @@
     "start": "next start",
     "clean": "rm -rf .next dist",
     "lint": "tsc --noEmit",
+    "db:init": "node scripts/db-init.mjs",
     "ui:smoke:screenshots": "node scripts/ui-smoke-and-screenshots.mjs"
   },
   "dependencies": {
