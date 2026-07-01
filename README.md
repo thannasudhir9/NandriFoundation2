@@ -33,6 +33,16 @@ For testing purposes, the following default admin logins are pre-configured:
 For a detailed breakdown of the application architecture, see [ARCHITECTURE.md](./ARCHITECTURE.md).
 For planned features and roadmap, see [FUTURE_SCOPE.md](./FUTURE_SCOPE.md).
 
+## Documentation Index
+- [Detailed Change Log](./docs/CHANGELOG_DETAILED.md)
+- [Command Log](./docs/COMMAND_LOG.md)
+- [Prompt Log](./docs/PROMPT_LOG.md)
+- [Design Notes](./docs/DESIGN_NOTES.md)
+- [Current Architecture](./docs/ARCHITECTURE_CURRENT.md)
+- [Tools and Skills Used](./docs/TOOLS_AND_SKILLS_USED.md)
+- [System Overview (Stack, DB, Login)](./docs/SYSTEM_OVERVIEW.md)
+- [AI Prompt Source File](./PROMPTS.md)
+
 ## June 30 Hackathon Brief
 
 ### Goal
@@ -100,6 +110,24 @@ Pick one challenge and develop an idea/prototype/concept/sketch as a group in 45
   ![Next Profile](./screenshots/next-profile.png)
 - Features  
   ![Next Features](./screenshots/next-features.png)
+
+### UI Smoke + Screenshot Handler
+
+Run one command to validate core UI routes and regenerate screenshots:
+
+```bash
+npm run ui:smoke:screenshots
+```
+
+Optional overrides:
+
+```bash
+VITE_BASE_URL=http://127.0.0.1:3000 \
+NEXT_BASE_URL=http://127.0.0.1:3002 \
+SCREENSHOT_DIR=screenshots \
+UI_TIMEOUT_MS=5000 \
+npm run ui:smoke:screenshots
+```
 
 ## Support
 For quick assistance, chat with us directly via WhatsApp: [+91 9000668360](https://wa.me/919000668360). This configuration can be updated dynamically in the future via the Admin Settings.

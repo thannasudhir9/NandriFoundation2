@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "clean": "rm -rf .next dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "ui:smoke:screenshots": "node scripts/ui-smoke-and-screenshots.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.4.1",
