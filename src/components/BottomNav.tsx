@@ -37,6 +37,16 @@ export function BottomNav({ currentTab, setCurrentTab, role }: BottomNavProps) {
           <span className="text-[10px] font-medium hidden sm:block">{t('sponsors')}</span>
         </button>
 
+        {(role === 'employee' || role === 'superadmin') && (
+          <button
+            onClick={() => setCurrentTab('sponsorships')}
+            className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'sponsorships' ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            <HandCoins className="w-6 h-6 mb-1" />
+            <span className="text-[10px] font-medium hidden sm:block">Sponsorships</span>
+          </button>
+        )}
+
         <button 
           onClick={() => setCurrentTab('features')}
           className={`flex flex-col items-center p-2 flex-1 ${currentTab === 'features' ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}

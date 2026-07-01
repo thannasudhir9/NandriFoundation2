@@ -4,8 +4,8 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { INITIAL_SPONSORS, INITIAL_STUDENTS, INITIAL_UPDATES } from './data';
-import { Sponsor, Update, Student } from './types';
+import { INITIAL_PROGRAMS, INITIAL_SPONSORS, INITIAL_SPONSORSHIPS, INITIAL_STUDENTS, INITIAL_UPDATES } from './data';
+import { Program, Sponsor, Sponsorship, Update, Student } from './types';
 import { BottomNav } from './components/BottomNav';
 import { Feed } from './components/Feed';
 import { StudentsList } from './components/StudentsList';
@@ -27,6 +27,7 @@ import { VoiceAssistant } from './components/VoiceAssistant';
 import { Role } from './types';
 import { ContactUs } from './components/ContactUs';
 import { AdminSqlPage } from './components/AdminSqlPage';
+import { SponsorshipsView } from './components/SponsorshipsView';
 
 interface TabOption {
   id: string;
@@ -47,6 +48,8 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
   const [updates, setUpdates] = useState<Update[]>(INITIAL_UPDATES);
   const [students, setStudents] = useState<Student[]>(INITIAL_STUDENTS);
   const [sponsors, setSponsors] = useState<Sponsor[]>(INITIAL_SPONSORS);
+  const [programs, setPrograms] = useState<Program[]>(INITIAL_PROGRAMS);
+  const [sponsorships, setSponsorships] = useState<Sponsorship[]>(INITIAL_SPONSORSHIPS);
   
   const { language, setLanguage, t } = useLanguage();
   const { user, logout } = useAuth();
@@ -65,7 +68,7 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
   }, [initialTab]);
 
   useEffect(() => {
-    const staffOnlyTabs = new Set(['dashboard', 'add', 'crm', 'admin']);
+    const staffOnlyTabs = new Set(['dashboard', 'add', 'crm', 'admin', 'sponsorships']);
     if (!isStaff && staffOnlyTabs.has(currentTab)) {
       setCurrentTab('feed');
     }
@@ -108,15 +111,25 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
     // Initial sync on mount
     const initSync = async () => {
       console.info('[DB][App] initSync:start');
-      await SyncService.ensureSeededFromCurrentAppData(INITIAL_STUDENTS, INITIAL_UPDATES, INITIAL_SPONSORS);
-      const { localStudents, localUpdates, localSponsors } = await SyncService.syncBothWays();
+      await SyncService.ensureSeededFromCurrentAppData(
+        INITIAL_STUDENTS,
+        INITIAL_UPDATES,
+        INITIAL_SPONSORS,
+        INITIAL_PROGRAMS,
+        INITIAL_SPONSORSHIPS,
+      );
+      const { localStudents, localUpdates, localSponsors, localPrograms, localSponsorships } = await SyncService.syncBothWays();
       if (localStudents.length > 0) setStudents(localStudents);
       if (localUpdates.length > 0) setUpdates(localUpdates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       if (localSponsors.length > 0) setSponsors(localSponsors);
+      if (localPrograms.length > 0) setPrograms(localPrograms);
+      if (localSponsorships.length > 0) setSponsorships(localSponsorships);
       console.info('[DB][App] initSync:done', {
         students: localStudents.length,
         updates: localUpdates.length,
         sponsors: localSponsors.length,
+        programs: localPrograms.length,
+        sponsorships: localSponsorships.length,
       });
     };
     initSync();
@@ -157,14 +170,18 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
 
   const handleManualSync = async () => {
     console.info('[DB][App] handleManualSync:start');
-    const { localStudents, localUpdates, localSponsors } = await SyncService.syncBothWays();
+    const { localStudents, localUpdates, localSponsors, localPrograms, localSponsorships } = await SyncService.syncBothWays();
     setStudents(localStudents);
     setUpdates(localUpdates.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     setSponsors(localSponsors);
+    setPrograms(localPrograms);
+    setSponsorships(localSponsorships);
     console.info('[DB][App] handleManualSync:done', {
       students: localStudents.length,
       updates: localUpdates.length,
       sponsors: localSponsors.length,
+      programs: localPrograms.length,
+      sponsorships: localSponsorships.length,
     });
   };
 
@@ -280,6 +297,15 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
       case 'feed': return <Feed updates={updates} students={students} />;
       case 'students': return <StudentsList students={students} role={role} />;
       case 'sponsors': return <SponsorsList sponsors={sponsors} />;
+      case 'sponsorships':
+        return (role === 'employee' || role === 'superadmin') ? (
+          <SponsorshipsView
+            sponsorships={sponsorships}
+            sponsors={sponsors}
+            students={students}
+            programs={programs}
+          />
+        ) : null;
       case 'dashboard': return (role === 'employee' || role === 'superadmin') ? <Dashboard students={students} /> : null;
       case 'add': return (role === 'employee' || role === 'superadmin') ? <AddUpdate students={students} onAddUpdate={handleAddUpdate} onSuccess={() => setCurrentTab('feed')} /> : null;
       case 'crm': return (role === 'employee' || role === 'superadmin') ? <CrmDashboard students={students} onAddStudent={handleAddStudent} onUpdateStudent={handleUpdateStudent} onDeleteStudent={handleDeleteStudent} onSyncNow={handleManualSync} /> : null;
@@ -309,6 +335,7 @@ export function AppShell({ initialTab = 'feed' }: AppShellProps) {
     { id: 'feed', label: t('updates'), visible: true },
     { id: 'students', label: t('students'), visible: true },
     { id: 'sponsors', label: t('sponsors'), visible: true },
+    { id: 'sponsorships', label: 'Sponsorships', visible: isStaff },
     { id: 'features', label: 'Features', visible: true },
     { id: 'dashboard', label: t('dashboard'), visible: isStaff },
     { id: 'add', label: t('post'), visible: isStaff },

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Sponsor, Student, Update } from '../types';
+import { Program, Sponsor, Sponsorship, Student, Update } from '../types';
 import { SyncService } from '../db/SyncService';
 import { Database, Plus, Save, Trash2, RefreshCw } from 'lucide-react';
 
@@ -14,6 +14,8 @@ export function AdminSqlPage({ onDataChanged }: AdminSqlPageProps) {
   const [students, setStudents] = useState<Student[]>([]);
   const [updates, setUpdates] = useState<Update[]>([]);
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [sponsorships, setSponsorships] = useState<Sponsorship[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -30,10 +32,12 @@ export function AdminSqlPage({ onDataChanged }: AdminSqlPageProps) {
     setIsLoading(true);
     setError('');
     try {
-      const { localStudents, localUpdates, localSponsors } = await SyncService.readSqlite();
+      const { localStudents, localUpdates, localSponsors, localPrograms, localSponsorships } = await SyncService.readSqlite();
       setStudents(localStudents);
       setUpdates(localUpdates);
       setSponsors(localSponsors);
+      setPrograms(localPrograms);
+      setSponsorships(localSponsorships);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load data');
     } finally {
@@ -46,7 +50,7 @@ export function AdminSqlPage({ onDataChanged }: AdminSqlPageProps) {
   }, []);
 
   const persist = async (nextStudents: Student[], nextUpdates: Update[], nextSponsors: Sponsor[]) => {
-    await SyncService.writeSqlite(nextStudents, nextUpdates, nextSponsors);
+    await SyncService.writeSqlite(nextStudents, nextUpdates, nextSponsors, programs, sponsorships);
     setStudents(nextStudents);
     setUpdates(nextUpdates);
     setSponsors(nextSponsors);

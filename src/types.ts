@@ -33,3 +33,19 @@ export interface Sponsor {
   donationTotal: number;
   sponsoredStudentCount: number;
 }
+
+export interface Program {
+  id: string;
+  name: string;
+  location: string;
+}
+
+export interface Sponsorship {
+  id: string;
+  sponsorId: string;
+  studentId: string;
+  programId: string;
+  startDate: string;
+  status: 'active' | 'paused' | 'closed';
+  monthlyAmount: number;
+}

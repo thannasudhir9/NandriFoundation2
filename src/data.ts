@@ -1,4 +1,4 @@
-import { Sponsor, Student, Update } from './types';
+import { Program, Sponsor, Sponsorship, Student, Update } from './types';
 
 const names = ['Aarav', 'Priya', 'Karthik', 'Saanvi', 'Rohan', 'Ananya', 'Vivaan', 'Diya', 'Aditya', 'Ishaan', 'Neha', 'Arjun', 'Meera', 'Krishna', 'Sara', 'Rahul', 'Kavya', 'Om', 'Sita', 'Vikram'];
 const villages = ['Irular Village A', 'Irular Village B', 'Irular Village C', 'Thiruvallur', 'Kanchipuram'];
@@ -58,6 +58,43 @@ const generateSponsors = (students: Student[]): Sponsor[] => {
 };
 
 export const INITIAL_SPONSORS: Sponsor[] = generateSponsors(INITIAL_STUDENTS);
+
+export const INITIAL_PROGRAMS: Program[] = [
+  { id: 'pg-little-flower', name: 'Little Flower School', location: 'Mamallapuram' },
+  { id: 'pg-irular', name: 'Irular Village Support', location: 'Tamil Nadu' },
+  { id: 'pg-women-shelter', name: "Women's Shelter", location: 'Kanchipuram' },
+  { id: 'pg-tailoring', name: 'Tailoring Institute', location: 'Thiruvallur' },
+];
+
+const chooseProgramId = (student: Student): string => {
+  const school = student.school.toLowerCase();
+  if (school.includes('little flower')) return 'pg-little-flower';
+  if (student.village.toLowerCase().includes('irular')) return 'pg-irular';
+  if (student.grade.toLowerCase().includes('9th') || student.grade.toLowerCase().includes('10th')) return 'pg-tailoring';
+  return 'pg-women-shelter';
+};
+
+const generateSponsorships = (students: Student[], sponsors: Sponsor[]): Sponsorship[] => {
+  const sponsorByName = new Map(sponsors.map((s) => [s.name.trim().toLowerCase(), s.id]));
+  const sponsorships: Sponsorship[] = [];
+  for (const student of students) {
+    if (!student.sponsorName) continue;
+    const sponsorId = sponsorByName.get(student.sponsorName.trim().toLowerCase());
+    if (!sponsorId) continue;
+    sponsorships.push({
+      id: `spn-${sponsorId}-${student.id}`,
+      sponsorId,
+      studentId: student.id,
+      programId: chooseProgramId(student),
+      startDate: new Date(Date.now() - Math.floor(Math.random() * 365) * 86400000).toISOString(),
+      status: 'active',
+      monthlyAmount: Math.max(20, student.donationAmount || 0),
+    });
+  }
+  return sponsorships;
+};
+
+export const INITIAL_SPONSORSHIPS: Sponsorship[] = generateSponsorships(INITIAL_STUDENTS, INITIAL_SPONSORS);
 
 export const INITIAL_UPDATES: Update[] = [
   {
