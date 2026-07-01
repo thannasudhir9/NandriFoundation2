@@ -21,6 +21,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
   const [viewType, setViewType] = useState<'excel' | 'json'>('excel');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState(false);
+  const [limit, setLimit] = useState<number | 'all'>(10);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { t } = useLanguage();
   const handleSync = async () => {
@@ -45,6 +46,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
     s.village.toLowerCase().includes(search.toLowerCase()) ||
     (s.sponsorName && s.sponsorName.toLowerCase().includes(search.toLowerCase()))
   );
+  const paginatedStudents = limit === 'all' ? filteredStudents : filteredStudents.slice(0, limit as number);
 
   const exportToExcel = () => {
     const data = filteredStudents.map(s => ({
@@ -282,6 +284,25 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
         />
       </div>
 
+      <div className="flex justify-between items-center mb-4">
+        <label className="text-sm text-gray-600 dark:text-gray-400">
+          Show
+          <select
+            value={limit}
+            onChange={(e) => setLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            className="mx-2 p-1 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value="all">All</option>
+          </select>
+          records
+        </label>
+      </div>
+
       {(editingId || isAdding) && (
         <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-green-100 dark:border-gray-700 mb-6 transition-colors duration-300">
           <div className="flex justify-between items-center mb-4">
@@ -374,7 +395,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredStudents.map((student) => (
+              {paginatedStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input 
@@ -424,7 +445,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
               ))}
             </tbody>
           </table>
-          {filteredStudents.length === 0 && (
+          {paginatedStudents.length === 0 && (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
               No records found.
             </div>
@@ -433,7 +454,7 @@ export function CrmDashboard({ students, onUpdateStudent, onAddStudent, onDelete
         ) : (
           <div className="p-4 bg-gray-900 overflow-x-auto">
             <pre className="text-xs text-green-400 font-mono">
-              {JSON.stringify(filteredStudents, null, 2)}
+              {JSON.stringify(paginatedStudents, null, 2)}
             </pre>
           </div>
         )}

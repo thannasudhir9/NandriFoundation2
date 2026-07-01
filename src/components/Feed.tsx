@@ -19,6 +19,17 @@ export function Feed({ updates, students }: FeedProps) {
 
   return (
     <div className="pb-24 pt-4 px-4 max-w-md mx-auto transition-colors duration-300">
+      <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900/40 dark:bg-blue-950/40 dark:text-blue-200">
+        <span className="font-semibold">Official website:</span>{' '}
+        <a
+          href="https://nandrikinderhilfe.de/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-blue-400 underline-offset-2 hover:text-blue-700 dark:hover:text-blue-300"
+        >
+          nandrikinderhilfe.de
+        </a>
+      </div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight mb-1">{t('feedTitle')}</h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{t('feedSubtitle')}</p>

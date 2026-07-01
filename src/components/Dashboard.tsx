@@ -14,6 +14,7 @@ export function Dashboard({ students }: DashboardProps) {
   const [sponsorshipFilter, setSponsorshipFilter] = useState<SponsorshipFilter>('all');
   const [minDonation, setMinDonation] = useState('');
   const [maxDonation, setMaxDonation] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
 
   const filteredStudents = useMemo(() => {
     const searchText = search.trim().toLowerCase();
@@ -45,6 +46,7 @@ export function Dashboard({ students }: DashboardProps) {
   const unsponsoredStudents = totalStudents - sponsoredStudents;
   const totalDonations = filteredStudents.reduce((sum, student) => sum + (student.donationAmount ?? 0), 0);
   const avgDonation = sponsoredStudents > 0 ? totalDonations / sponsoredStudents : 0;
+  const paginatedStudents = limit === 'all' ? filteredStudents : filteredStudents.slice(0, limit as number);
 
   return (
     <div className="pb-24 pt-4 px-4 w-full max-w-6xl mx-auto transition-colors duration-300">
@@ -109,6 +111,25 @@ export function Dashboard({ students }: DashboardProps) {
         </div>
       </div>
 
+      <div className="flex justify-between items-center mb-4">
+        <label className="text-sm text-gray-600 dark:text-gray-400">
+          Show
+          <select
+            value={limit}
+            onChange={(e) => setLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            className="mx-2 p-1 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value="all">All</option>
+          </select>
+          records
+        </label>
+      </div>
+
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors duration-300">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -121,7 +142,7 @@ export function Dashboard({ students }: DashboardProps) {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredStudents.map((student) => (
+              {paginatedStudents.map((student) => (
                 <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{student.name}</div>
@@ -147,7 +168,7 @@ export function Dashboard({ students }: DashboardProps) {
               ))}
             </tbody>
           </table>
-          {filteredStudents.length === 0 && (
+          {paginatedStudents.length === 0 && (
             <div className="text-center py-10 text-gray-500 dark:text-gray-400 text-sm">
               {t('noRecords')}
             </div>

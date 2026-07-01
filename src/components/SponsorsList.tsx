@@ -10,6 +10,7 @@ interface SponsorsListProps {
 export function SponsorsList({ sponsors }: SponsorsListProps) {
   const { t } = useLanguage();
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
 
   const filteredSponsors = useMemo(
     () =>
@@ -26,6 +27,7 @@ export function SponsorsList({ sponsors }: SponsorsListProps) {
 
   const totalDonation = filteredSponsors.reduce((sum, sponsor) => sum + sponsor.donationTotal, 0);
   const totalChildren = filteredSponsors.reduce((sum, sponsor) => sum + sponsor.sponsoredStudentCount, 0);
+  const paginatedSponsors = limit === 'all' ? filteredSponsors : filteredSponsors.slice(0, limit as number);
 
   return (
     <div className="pb-24 pt-4 px-4 max-w-md mx-auto transition-colors duration-300">
@@ -62,8 +64,27 @@ export function SponsorsList({ sponsors }: SponsorsListProps) {
         />
       </div>
 
+      <div className="flex justify-between items-center mb-4">
+        <label className="text-sm text-gray-600 dark:text-gray-400">
+          Show
+          <select
+            value={limit}
+            onChange={(e) => setLimit(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            className="mx-2 p-1 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+          >
+            <option value={5}>5</option>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value="all">All</option>
+          </select>
+          records
+        </label>
+      </div>
+
       <div className="space-y-4">
-        {filteredSponsors.map((sponsor) => (
+        {paginatedSponsors.map((sponsor) => (
           <div
             key={sponsor.id}
             className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 transition-colors duration-300"
@@ -85,7 +106,7 @@ export function SponsorsList({ sponsors }: SponsorsListProps) {
             </div>
           </div>
         ))}
-        {filteredSponsors.length === 0 && (
+        {paginatedSponsors.length === 0 && (
           <div className="text-center py-10 text-gray-500 dark:text-gray-400">
             <p>{t('noSponsors')}</p>
           </div>

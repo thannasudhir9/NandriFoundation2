@@ -2,6 +2,8 @@
 
 Nandri Connect is a progressive web application designed to bridge the gap between rural education initiatives in India (specifically the Irular communities) and their sponsors around the world. The application empowers local staff to share real-time updates and manages student records, while allowing sponsors to see the direct impact of their support.
 
+Official Nandri website: [https://nandrikinderhilfe.de/](https://nandrikinderhilfe.de/)
+
 ## Core Features
 
 - **Real-Time Feed**: A chronological feed of updates, photos, and achievements of sponsored children.
