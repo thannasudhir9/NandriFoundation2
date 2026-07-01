@@ -1,6 +1,7 @@
 # Nandri Foundation Connect — DB & Features Status Report
 
-**Generated:** 2026-07-01
+**Last Updated:** 2026-07-01 19:59 CEST
+**Generated:** 2026-07-01 19:59 CEST
 **DB File:** `data/nandri.sqlite` (68 KB)
 **Last Sync:** 2026-07-01T09:48:59.631Z
 

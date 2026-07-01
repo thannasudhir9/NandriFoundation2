@@ -1,5 +1,7 @@
 # Nandri Foundation Connect — Master Documentation
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 > Live site: https://thannasudhir9.github.io/NandriFoundation2/
 > Repository: https://github.com/thannasudhir9/NandriFoundation2
 > Update note (Jul 1): Local runtime now uses SQLite API as primary source of truth; sponsors data + sponsors tab added.

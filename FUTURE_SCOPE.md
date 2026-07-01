@@ -1,5 +1,7 @@
 # Future Scope & Roadmap
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 The Nandri Connect platform is designed to scale as the foundation grows. Below are the planned features and expansions for future releases:
 
 ## Phase 1: Core Connectivity & Data Integrity (Current/Next)

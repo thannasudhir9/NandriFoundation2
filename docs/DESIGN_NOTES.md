@@ -1,5 +1,7 @@
 # Design Notes
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 ## UI Direction
 - Keep interface simple, operational, and low-friction for NGO teams.
 - Full-width web/laptop views; mobile framing only in mobile mode.

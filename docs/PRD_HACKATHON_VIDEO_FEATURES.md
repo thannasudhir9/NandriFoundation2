@@ -1,5 +1,7 @@
 # PRD: Hackathon Video Feature Pack (V1)
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 ## Source
 - Video: `Nandri VTO Hackathon Presentation June 30.mp4`
 - Date created: `2026-07-01 19:21 CEST`

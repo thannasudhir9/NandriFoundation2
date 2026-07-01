@@ -1,5 +1,7 @@
 # Tools and Skills Used
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 ## Core Stack
 - Next.js (App Router, static export)
 - React + TypeScript

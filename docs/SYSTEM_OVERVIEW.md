@@ -1,5 +1,7 @@
 # System Overview
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 ## Technology Stack
 - Frontend framework: Next.js 15 (App Router), React 19, TypeScript.
 - Parallel legacy runtime (local): Vite-compatible code path remains available.

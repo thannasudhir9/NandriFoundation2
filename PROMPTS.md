@@ -1,5 +1,7 @@
 # AI Generative Prompts
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 This file documents the core prompts and instructions utilized to generate the architectural and visual structure of Nandri Connect using the Google AI Studio coding agent.
 
 ## Initial Concept Prompt
@@ -16,3 +18,10 @@ This file documents the core prompts and instructions utilized to generate the a
 
 ---
 *These prompts can be reused to reconstruct or extend similar NGO applications in future AI Studio sessions.*
+
+## Latest Session Prompt Additions (2026-07-01)
+> "Nandri VTO Hackathon Presentation June 30.mp4 ... understand and analyse this video and take new features which we can implement from it"
+
+> "create PRD, tasks and subtasks files first and Implement them and when completeed each task - add date and time, status - completed, pending"
+
+> "update all Documentation with date and time, update prompts, readme, .md files"

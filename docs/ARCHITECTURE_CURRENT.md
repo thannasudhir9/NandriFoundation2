@@ -1,5 +1,7 @@
 # Current Architecture (Post-Migration)
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 ## Runtime Topology
 - Next.js App Router (static export target).
 - Legacy Vite entry still available for parallel compatibility in local development.

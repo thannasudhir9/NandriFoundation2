@@ -1,5 +1,7 @@
 # System Architecture
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 ## Overview
 Nandri Connect is built as a single-page application (SPA) using a modern web stack optimized for rapid development, type safety, and global accessibility.
 

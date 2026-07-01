@@ -1,5 +1,7 @@
 # Subtasks: Hackathon Video Feature Pack
 
+**Last Updated:** 2026-07-01 19:59 CEST
+
 Created: `2026-07-01 19:21 CEST`
 
 | Parent Task | Subtask ID | Subtask | Status | Updated At |
